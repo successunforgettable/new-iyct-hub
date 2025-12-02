@@ -1,94 +1,66 @@
-// apps/backend/src/index.ts
-import express, { Request, Response, NextFunction } from 'express';
+// Implementation: Backend Server with Priority 8 File Upload Support
+// Reference: PROJECT_MASTER_PLAN_PART2.md, Section 11, Week 3-4
+// Includes: Authentication, Programs, Progress Tracking, File Upload
+
+import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import path from 'path';
 import authRoutes from './routes/auth.routes';
 import programRoutes from './routes/program.routes';
-
-dotenv.config();
+import progressRoutes from './routes/progress.routes';
+import fileRoutes from './routes/file.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const prisma = new PrismaClient();
 
+// Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true,
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use((req, _res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
+// Serve uploaded files (Priority 8)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Health check endpoint
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', message: 'IYCT Platform API is running' });
 });
 
-app.get('/health', (_req, res) => {
-  res.json({
-    success: true,
-    message: 'IYCT API is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
+// API Routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/programs', programRoutes);
+app.use('/api/v1/progress', progressRoutes);
+app.use('/api/v1/files', fileRoutes); // Priority 8: File upload
+
+// Error handling middleware
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('❌ Error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Internal server error',
   });
 });
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/programs', programRoutes);
-
+// 404 handler
 app.use((_req, res) => {
   res.status(404).json({
     success: false,
-    error: {
-      code: 'NOT_FOUND',
-      message: 'Endpoint not found',
-    },
-    meta: {
-      timestamp: new Date().toISOString(),
-    },
+    error: 'Route not found',
   });
 });
 
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Error:', err);
-  res.status(500).json({
-    success: false,
-    error: {
-      code: 'SERVER_ERROR',
-      message: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined,
-    },
-    meta: {
-      timestamp: new Date().toISOString(),
-    },
-  });
+// Start server
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`📍 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔐 Auth API: http://localhost:${PORT}/api/v1/auth`);
+  console.log(`📚 Programs API: http://localhost:${PORT}/api/v1/programs`);
+  console.log(`📊 Progress API: http://localhost:${PORT}/api/v1/progress`);
+  console.log(`📤 Files API: http://localhost:${PORT}/api/v1/files`);
+  console.log(`📁 Uploads: http://localhost:${PORT}/uploads`);
 });
 
-const startServer = async () => {
-  try {
-    await prisma.$connect();
-    console.log('✅ Database connected');
-
-    app.listen(PORT, () => {
-      console.log(`✅ Server running on port ${PORT}`);
-      console.log(`🔗 API URL: http://localhost:${PORT}`);
-      console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-    });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
-};
-
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully...');
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-startServer();
+export default app;

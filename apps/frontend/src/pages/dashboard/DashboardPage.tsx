@@ -4,6 +4,8 @@
 // - SESSION3_COMPLETE_HANDOFF.md, Priority 4 implementation
 // 📋 SPEC: Fetch real programs from backend API, replace mock data
 // 🔧 FIX: Changed Navigation and ProgramCard imports from default to named imports
+// 🔧 FIX 2: Changed API method names to match client.ts (getEnrolled, getAll)
+// 🔧 FIX 3: Fixed data structure - enrolledData/allProgramsData are already arrays
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -25,12 +27,12 @@ interface Program {
 }
 
 interface Enrollment {
-  id: string;
+  enrollmentId: string;
   enrollmentStatus: string;
   paymentStatus: string;
   completionPercentage: number;
   currentWeek: number;
-  lastActivityAt: string;
+  lastActivityAt: string | null;
   program: Program;
 }
 
@@ -45,7 +47,7 @@ const DashboardPage = () => {
   } = useQuery({
     queryKey: ['enrolled-programs'],
     queryFn: async () => {
-      const response = await programsAPI.getEnrolledPrograms();
+      const response = await programsAPI.getEnrolled();
       return response.data;
     },
   });
@@ -58,7 +60,7 @@ const DashboardPage = () => {
   } = useQuery({
     queryKey: ['all-programs'],
     queryFn: async () => {
-      const response = await programsAPI.getAllPrograms();
+      const response = await programsAPI.getAll();
       return response.data;
     },
   });
@@ -100,9 +102,9 @@ const DashboardPage = () => {
     );
   }
 
-  // Extract data from API responses
-  const enrollments: Enrollment[] = enrolledData?.data || [];
-  const allPrograms: Program[] = allProgramsData?.data || [];
+  // Extract data from API responses - data is already the array
+  const enrollments: Enrollment[] = enrolledData || [];
+  const allPrograms: Program[] = allProgramsData || [];
 
   // Get the most recently active enrolled program for hero card
   const activeEnrollment = enrollments.length > 0 ? enrollments[0] : null;

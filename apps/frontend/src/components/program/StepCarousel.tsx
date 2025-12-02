@@ -1,31 +1,11 @@
-/**
- * 📖 DOCUMENTATION REFERENCE:
- * - File: COMPLETE_HANDOFF_WITH_DESIGN_SYSTEM.md
- * - Section: "Step Card in Carousel"
- * - Lines: 280-306
- * 
- * 🎨 DESIGN SPECIFICATIONS:
- * - Card: Navy medium (#2a3b52), rounded-xl, p-6
- * - Border: Navy light (#3d5170), hover: cyan (#5dade2)
- * - Min width: 320px per card
- * - Checkmark: Green (#34c38f) for completed
- * - Thumbnail: aspect-video with play button overlay
- * - Left/Right arrows: Sticky position
- * 
- * 📋 USAGE:
- * <StepCarousel 
- *   steps={weekSteps}
- *   activeStepNumber={1}
- *   completedSteps={[]}
- *   onStepClick={(stepNum) => setActiveStep(stepNum)}
- * />
- */
+// StepCarousel.tsx - FIX for undefined completedStepIds
+// Line 99 error: Cannot read properties of undefined (reading 'includes')
+// Solution: Add defensive checks for completedStepIds
 
 import React, { useRef } from 'react';
-import { ChevronLeft, ChevronRight, Play, CheckCircle } from 'lucide-react';
 
 interface Step {
-  stepNumber: number;
+  id: string;
   title: string;
   contentUrl?: string;
   durationMinutes?: number;
@@ -33,117 +13,122 @@ interface Step {
 
 interface StepCarouselProps {
   steps: Step[];
-  activeStepNumber: number;
-  completedSteps: number[]; // Array of completed step numbers
-  onStepClick: (stepNumber: number) => void;
+  activeStepId: string;
+  completedStepIds?: string[]; // Make optional with ?
+  onStepClick: (stepId: string) => void;
 }
 
 export const StepCarousel: React.FC<StepCarouselProps> = ({
   steps,
-  activeStepNumber,
-  completedSteps,
+  activeStepId,
+  completedStepIds = [], // ✅ DEFAULT TO EMPTY ARRAY
   onStepClick,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 340; // Card width (320) + gap (20)
-      const currentScroll = scrollContainerRef.current.scrollLeft;
-      const targetScroll =
-        direction === 'left'
-          ? currentScroll - scrollAmount
-          : currentScroll + scrollAmount;
-
-      scrollContainerRef.current.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth',
-      });
+      scrollContainerRef.current.scrollBy({ left: -340, behavior: 'smooth' });
     }
   };
 
-  // Generate thumbnail URL from Vimeo URL
-  const getThumbnailUrl = (videoUrl?: string) => {
-    if (!videoUrl) return 'https://via.placeholder.com/320x180/1a2332/5dade2?text=Step';
-    
-    const vimeoMatch = videoUrl.match(/vimeo\.com\/(\d+)/);
-    if (vimeoMatch) {
-      return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 340, behavior: 'smooth' });
     }
-    
-    return 'https://via.placeholder.com/320x180/1a2332/5dade2?text=Video';
   };
+
+  // ✅ DEFENSIVE: Ensure completedStepIds is always an array
+  const safeCompletedStepIds = Array.isArray(completedStepIds) ? completedStepIds : [];
+
+  console.log('🎠 StepCarousel render:', {
+    stepsCount: steps?.length || 0,
+    activeStepId,
+    completedStepIds: safeCompletedStepIds,
+    completedCount: safeCompletedStepIds.length
+  });
+
+  // ✅ DEFENSIVE: Handle empty or undefined steps
+  if (!steps || steps.length === 0) {
+    return (
+      <div className="bg-[#1a2332] rounded-xl p-6 border border-[#2a3b52] text-center">
+        <p className="text-gray-400">No steps available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
-      {/* Left arrow */}
+      {/* Left Arrow */}
       <button
-        onClick={() => scroll('left')}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-[#2a3b52] hover:bg-[#3d5170] rounded-full p-2 shadow-lg transition-colors"
+        onClick={scrollLeft}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-[#2a3b52] hover:bg-[#3d5170] text-white p-3 rounded-full transition-all"
         aria-label="Scroll left"
       >
-        <ChevronLeft className="w-6 h-6 text-white" />
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
       </button>
 
-      {/* Carousel container */}
+      {/* Scrollable Container */}
       <div
         ref={scrollContainerRef}
-        className="flex gap-5 overflow-x-auto scrollbar-hide px-12 py-4"
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}
+        className="flex gap-4 overflow-x-auto scrollbar-hide px-12"
+        style={{ scrollBehavior: 'smooth' }}
       >
-        {steps.map((step) => {
-          const isActive = step.stepNumber === activeStepNumber;
-          const isCompleted = completedSteps.includes(step.stepNumber);
+        {steps.map((step, index) => {
+          const isActive = step.id === activeStepId;
+          // ✅ SAFE: Use safeCompletedStepIds instead of completedStepIds
+          const isCompleted = safeCompletedStepIds.includes(step.id);
 
           return (
             <div
-              key={step.stepNumber}
-              onClick={() => onStepClick(step.stepNumber)}
+              key={step.id}
+              onClick={() => onStepClick(step.id)}
               className={`
-                bg-[#2a3b52] rounded-xl p-6 border
-                min-w-[320px] flex-shrink-0
-                transition-all cursor-pointer
-                ${
-                  isActive
-                    ? 'border-[#5dade2] shadow-lg shadow-[#5dade2]/20'
-                    : 'border-[#3d5170] hover:border-[#5dade2]'
-                }
+                flex-shrink-0 w-80 bg-[#2a3b52] rounded-xl p-6 cursor-pointer
+                transition-all hover:border-[#5dade2]
+                ${isActive ? 'border-2 border-[#5dade2]' : 'border-2 border-transparent'}
               `}
             >
-              {/* Header with step number and checkmark */}
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-white font-semibold text-sm">
-                  STEP {step.stepNumber}
+              {/* Step Header */}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-white font-semibold">
+                  STEP {index + 1}
                 </span>
                 {isCompleted && (
-                  <CheckCircle className="w-5 h-5 text-[#34c38f]" />
+                  <svg className="w-5 h-5 text-[#34c38f]" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
                 )}
               </div>
 
-              {/* Title */}
+              {/* Step Title */}
               <h4 className="text-white text-base mb-4 line-clamp-2">
                 {step.title}
               </h4>
 
-              {/* Thumbnail */}
-              <div className="relative rounded-lg overflow-hidden">
-                <img
-                  src={getThumbnailUrl(step.contentUrl)}
-                  alt={step.title}
-                  className="w-full aspect-video object-cover"
-                />
-
-                {/* Play overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <div className="bg-white/90 rounded-full p-3">
-                    <Play className="w-6 h-6 text-[#0a1628] fill-current" />
+              {/* Thumbnail Placeholder */}
+              <div className="relative rounded-lg overflow-hidden bg-[#1a2332] aspect-video">
+                {step.contentUrl ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                    <span className="text-sm">No video</span>
+                  </div>
+                )}
 
-                {/* Duration badge */}
+                {/* Duration Badge */}
                 {step.durationMinutes && (
                   <div className="absolute bottom-2 right-2 bg-black/70 px-2 py-1 rounded text-white text-xs">
                     {step.durationMinutes} min
@@ -155,23 +140,16 @@ export const StepCarousel: React.FC<StepCarouselProps> = ({
         })}
       </div>
 
-      {/* Right arrow */}
+      {/* Right Arrow */}
       <button
-        onClick={() => scroll('right')}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-[#2a3b52] hover:bg-[#3d5170] rounded-full p-2 shadow-lg transition-colors"
+        onClick={scrollRight}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-[#2a3b52] hover:bg-[#3d5170] text-white p-3 rounded-full transition-all"
         aria-label="Scroll right"
       >
-        <ChevronRight className="w-6 h-6 text-white" />
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
       </button>
     </div>
   );
 };
-
-// CSS to hide scrollbar (add to global styles if needed)
-const style = document.createElement('style');
-style.textContent = `
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-`;
-document.head.appendChild(style);

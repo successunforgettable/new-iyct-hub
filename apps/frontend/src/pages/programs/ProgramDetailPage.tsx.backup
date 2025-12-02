@@ -63,20 +63,20 @@ const ProgramDetailPage: React.FC = () => {
 
         // Fetch program details
         const programResponse = await api.programs.getById(programId);
-        const programData = programResponse.data;
+        const programData = programResponse.data.data;
         setProgram(programData);
         console.log('✅ Program loaded:', programData.name);
 
         // Fetch weeks
         const weeksResponse = await api.programs.getWeeks(programId);
-        const weeksData = weeksResponse.data;
+        const weeksData = weeksResponse.data.data;
         setWeeks(weeksData);
         console.log('✅ Weeks loaded:', weeksData.length, 'weeks');
 
         // Fetch user enrollments
         console.log('🔄 Fetching user enrollments...');
-        const enrollmentsResponse = await api.programs.getEnrolled();
-        const enrollments = enrollmentsResponse.data;
+        const enrollmentsResponse = await api.programs.getUserEnrolled();
+        const enrollments = enrollmentsResponse.data.data;
 
         console.log('📦 Raw enrollments response:', enrollments);
         console.log('📊 Number of enrollments:', enrollments.length);
@@ -116,7 +116,7 @@ const ProgramDetailPage: React.FC = () => {
             const progressResponse = await api.progress.getEnrollmentProgress(
               currentEnrollment.enrollmentId  // ✅ Use enrollmentId field
             );
-            const progressData = progressResponse.data;
+            const progressData = progressResponse.data.data;
             
             // Extract completed step IDs
             const completed: string[] = [];

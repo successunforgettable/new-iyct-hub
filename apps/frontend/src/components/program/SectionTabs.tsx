@@ -1,83 +1,75 @@
-/**
- * 📖 DOCUMENTATION REFERENCE:
- * - File: COMPLETE_HANDOFF_WITH_DESIGN_SYSTEM.md
- * - Section: "Section Tabs (Program Sections)"
- * - Lines: 246-278
- * 
- * 🎨 DESIGN SPECIFICATIONS:
- * - Active tab: Cyan background (#5dade2)
- * - Completed tab: Navy medium (#2a3b52) with cyan border and green checkmark
- * - Inactive tab: Navy dark (#1a2332) with gray text
- * - Spacing: gap-3, px-6 py-2.5
- * - Font: text-sm font-medium
- * - Checkmark: Green (#34c38f) for completed
- * 
- * 📋 USAGE:
- * <SectionTabs 
- *   weeks={weekData}
- *   activeWeekNumber={1}
- *   completedWeeks={[]}
- *   onWeekChange={(weekNum) => setActiveWeek(weekNum)}
- * />
- */
-
+// apps/frontend/src/components/program/SectionTabs.tsx
 import React from 'react';
-import { Check } from 'lucide-react';
 
 interface Week {
+  id: string;
   weekNumber: number;
   title: string;
 }
 
 interface SectionTabsProps {
   weeks: Week[];
-  activeWeekNumber: number;
-  completedWeeks: number[]; // Array of completed week numbers
+  activeWeek: number;
+  completedWeeks?: string[]; // Optional, defaults to empty array
   onWeekChange: (weekNumber: number) => void;
 }
 
-export const SectionTabs: React.FC<SectionTabsProps> = ({
+export function SectionTabs({
   weeks,
-  activeWeekNumber,
-  completedWeeks,
+  activeWeek,
+  completedWeeks = [], // Default to empty array
   onWeekChange,
-}) => {
+}: SectionTabsProps) {
+  // Defensive check
+  if (!weeks || weeks.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 mb-8">
+    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
       {weeks.map((week) => {
-        const isActive = week.weekNumber === activeWeekNumber;
-        const isCompleted = completedWeeks.includes(week.weekNumber);
-        const isAccessible = true; // TODO: Add logic for locked weeks
+        const isActive = week.weekNumber === activeWeek;
+        const isCompleted = completedWeeks?.includes(week.id) || false; // Safe check
 
         return (
           <button
-            key={week.weekNumber}
-            onClick={() => isAccessible && onWeekChange(week.weekNumber)}
-            disabled={!isAccessible}
+            key={week.id}
+            onClick={() => onWeekChange(week.weekNumber)}
             className={`
               px-6 py-2.5 rounded-lg text-sm font-medium
-              transition-all whitespace-nowrap flex items-center gap-2
+              transition-all whitespace-nowrap min-w-[120px]
               ${
                 isActive
                   ? 'bg-[#5dade2] text-white'
                   : isCompleted
                   ? 'bg-[#2a3b52] text-white border border-[#5dade2]/30'
-                  : isAccessible
-                  ? 'bg-[#1a2332] text-white border border-[#3d5170]'
-                  : 'bg-[#1a2332] text-gray-400 border border-[#3d5170] opacity-50 cursor-not-allowed'
+                  : 'bg-[#2a3b52] text-gray-400 border border-[#3d5170]'
               }
+              hover:border-[#5dade2]
             `}
           >
-            {/* Week title */}
-            <span>Week {week.weekNumber}</span>
-
-            {/* Checkmark for completed weeks */}
-            {isCompleted && (
-              <Check className="w-5 h-5 text-[#34c38f]" />
-            )}
+            <div className="flex items-center gap-2">
+              <span>Week {week.weekNumber}</span>
+              {isCompleted && (
+                <svg
+                  className="w-4 h-4 text-[#34c38f]"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </div>
           </button>
         );
       })}
     </div>
   );
-};
+}
+
+// Named export
+export default SectionTabs;

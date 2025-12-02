@@ -1,9 +1,12 @@
-import axios from 'axios';
-import { useAuthStore } from '@/store/authStore';
+import axios, { AxiosInstance } from 'axios';
+
+// Base API configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 // Create axios instance
-const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3001/api/v1',
+const axiosInstance: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,97 +15,166 @@ const axiosInstance = axios.create({
 // Request interceptor to add auth token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().token;
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
-    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor to handle errors
+// Response interceptor for error handling
 axiosInstance.interceptors.response.use(
-  (response) => {
-    console.log('✅ Response received:', response.config.url, response.status);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error('❌ Response error:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
-
-    // Only logout on 401, not on other errors
     if (error.response?.status === 401) {
-      console.log('🔐 Unauthorized - logging out');
-      useAuthStore.getState().logout();
+      // Token expired or invalid
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
-
     return Promise.reject(error);
   }
 );
 
-// Auth API
-export const authAPI = {
-  // ✅ FIX: Handle both ways of calling - unwrap if needed
-  login: (emailOrData: string | { email: string; password: string }, password?: string) => {
-    let email: string;
-    let pass: string;
+// API client with new pattern
+export const api = {
+  // Authentication
+  auth: {
+    login: async (data: { email: string; password: string }) => {
+      const response = await axiosInstance.post('/auth/login', data);
+      return response.data;
+    },
 
-    // Check if called with separate params or object
-    if (typeof emailOrData === 'string' && password) {
-      // Called as: login(email, password)
-      email = emailOrData;
-      pass = password;
-    } else if (typeof emailOrData === 'object') {
-      // Called as: login({ email, password })
-      email = emailOrData.email;
-      pass = emailOrData.password;
-    } else {
-      throw new Error('Invalid login parameters');
-    }
+    register: async (data: {
+      email: string;
+      password: string;
+      fullName: string;
+      userRole: string;
+    }) => {
+      const response = await axiosInstance.post('/auth/register', data);
+      return response.data;
+    },
 
-    console.log('📧 Login request:', { email, password: '***' });
-    
-    // Always send clean data to backend
-    return axiosInstance.post('/auth/login', { email, password: pass });
+    logout: async () => {
+      const response = await axiosInstance.post('/auth/logout');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      return response.data;
+    },
+
+    getCurrentUser: async () => {
+      const response = await axiosInstance.get('/auth/me');
+      return response.data;
+    },
   },
 
-  register: (data: {
-    email: string;
-    password: string;
-    fullName: string;
-    userRole: string;
-  }) => axiosInstance.post('/auth/register', data),
+  // Programs
+  programs: {
+    getAll: async () => {
+      const response = await axiosInstance.get('/programs');
+      return response.data;
+    },
 
-  logout: () => axiosInstance.post('/auth/logout'),
+    getById: async (id: string) => {
+      const response = await axiosInstance.get(`/programs/${id}`);
+      return response.data;
+    },
+
+    getWeeks: async (programId: string) => {
+      const response = await axiosInstance.get(`/programs/${programId}/weeks`);
+      return response.data;
+    },
+
+    getEnrolled: async () => {
+      const response = await axiosInstance.get('/programs/user/enrolled');
+      return response.data;
+    },
+
+    enroll: async (programId: string, batchId?: string) => {
+      const response = await axiosInstance.post(`/programs/${programId}/enroll`, { batchId });
+      return response.data;
+    },
+  },
+
+  // Progress Tracking (Priority 7)
+  progress: {
+    startStep: async (stepId: string, enrollmentId: string) => {
+      const response = await axiosInstance.post(`/progress/step/${stepId}/start`, {
+        enrollmentId,
+      });
+      return response.data;
+    },
+
+    completeStep: async (stepId: string, enrollmentId: string) => {
+      const response = await axiosInstance.post(`/progress/step/${stepId}/complete`, {
+        enrollmentId,
+      });
+      return response.data;
+    },
+
+    getEnrollmentProgress: async (enrollmentId: string) => {
+      const response = await axiosInstance.get(`/progress/enrollment/${enrollmentId}`);
+      return response.data;
+    },
+
+    updateStepTime: async (stepId: string, timeSpentSeconds: number) => {
+      const response = await axiosInstance.patch(`/progress/step/${stepId}/time`, {
+        timeSpentSeconds,
+      });
+      return response.data;
+    },
+
+    getStepProgress: async (stepId: string) => {
+      const response = await axiosInstance.get(`/progress/step/${stepId}`);
+      return response.data;
+    },
+
+    resetEnrollmentProgress: async (enrollmentId: string) => {
+      const response = await axiosInstance.delete(`/progress/enrollment/${enrollmentId}/reset`);
+      return response.data;
+    },
+
+    // Priority 8: Assignment Submission
+    submitAssignment: async (
+      stepId: string,
+      data: {
+        enrollmentId: string;
+        submissionText?: string;
+        submissionFileUrl?: string;
+      }
+    ) => {
+      const response = await axiosInstance.post(`/progress/step/${stepId}/submit`, data);
+      return response.data;
+    },
+  },
+
+  // Files (Priority 8)
+  files: {
+    upload: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axiosInstance.post('/files/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+  },
 };
 
-// Programs API
-export const programsAPI = {
-  // Get all programs
-  getAllPrograms: () => axiosInstance.get('/programs'),
+// Legacy compatibility exports for existing code
+// This allows existing components to continue using:
+// import { authAPI, programsAPI } from '@/api/client'
+export const authAPI = api.auth;
+export const programsAPI = api.programs;
+export const progressAPI = api.progress;
+export const filesAPI = api.files;
 
-  // Get single program
-  getProgramById: (programId: string) => axiosInstance.get(`/programs/${programId}`),
-
-  // Get program with weeks and steps
-  getProgramWeeks: (programId: string) =>
-    axiosInstance.get(`/programs/${programId}/weeks`),
-
-  // Get user's enrolled programs
-  getEnrolledPrograms: () => axiosInstance.get('/programs/user/enrolled'),
-
-  // Enroll in program
-  enrollInProgram: (programId: string) =>
-    axiosInstance.post(`/programs/${programId}/enroll`),
-};
-
-export default axiosInstance;
+// Default export
+export default api;
