@@ -33,7 +33,7 @@ interface Week {
 }
 
 interface Enrollment {
-  enrollmentId: string;  // ✅ Correct field name
+  enrollmentId: string;
   program: {
     id: string;
     name: string;
@@ -83,11 +83,10 @@ const ProgramDetailPage: React.FC = () => {
         console.log('📦 Raw enrollments response:', enrollments);
         console.log('📊 Number of enrollments:', enrollments.length);
 
-        // Log each enrollment structure
         enrollments.forEach((e: any, index: number) => {
           console.log(`Enrollment ${index + 1}:`, {
-            enrollmentId: e.enrollmentId,  // ✅ Correct field
-            programId: e.program?.id,      // ✅ Correct nested field
+            enrollmentId: e.enrollmentId,
+            programId: e.program?.id,
             programName: e.program?.name || 'Unknown',
             fullObject: e
           });
@@ -95,7 +94,6 @@ const ProgramDetailPage: React.FC = () => {
 
         console.log('🔍 Looking for programId:', programId);
 
-        // ✅ CORRECTED: Match against program.id
         let currentEnrollment = enrollments.find((e: any) => 
           e.program?.id === programId
         );
@@ -116,18 +114,17 @@ const ProgramDetailPage: React.FC = () => {
           console.log('🔄 Fetching enrollment progress...');
           try {
             const progressResponse = await api.progress.getEnrollmentProgress(
-              currentEnrollment.enrollmentId  // ✅ Use enrollmentId field
+              currentEnrollment.enrollmentId
             );
             const progressData = progressResponse.data;
             
-            // Extract completed step IDs
+            // ✅ FIXED: API returns stepProgress array, not weeks.steps
             const completed: string[] = [];
-            progressData.weeks?.forEach((week: any) => {
-              week.steps?.forEach((step: any) => {
-                if (step.status === 'completed') {
-                  completed.push(step.stepId);
-                }
-              });
+            progressData.stepProgress?.forEach((progress: any) => {
+              // Handle both uppercase and lowercase status
+              if (progress.status === 'COMPLETED' || progress.status === 'completed') {
+                completed.push(progress.stepId);
+              }
             });
             
             setCompletedSteps(completed);
@@ -171,7 +168,7 @@ const ProgramDetailPage: React.FC = () => {
     onSuccess: async (response, variables) => {
       console.log('✅ Step marked complete successfully:', response.data);
       
-      // Update local completed steps
+      // Update local completed steps immediately
       setCompletedSteps(prev => [...prev, variables.stepId]);
       
       // Refetch progress to get updated completion percentage
@@ -186,16 +183,6 @@ const ProgramDetailPage: React.FC = () => {
           });
         }
         
-        // Extract updated completed steps
-        const completed: string[] = [];
-        progressData.weeks?.forEach((week: any) => {
-          week.steps?.forEach((step: any) => {
-            if (step.status === 'completed') {
-              completed.push(step.stepId);
-            }
-          });
-        });
-        setCompletedSteps(completed);
       } catch (error) {
         console.error('Error refetching progress:', error);
       }
@@ -346,9 +333,9 @@ const ProgramDetailPage: React.FC = () => {
         <div className="mb-8">
           <SectionTabs
             weeks={weeks}
-            activeWeekIndex={activeWeekIndex}
-            onWeekChange={setActiveWeekIndex}
-            completedWeeks={[]} // TODO: Track completed weeks
+            activeWeek={activeWeekIndex + 1}
+            onWeekChange={(weekNum) => setActiveWeekIndex(weekNum - 1)}
+            completedWeeks={[]}
           />
         </div>
 
