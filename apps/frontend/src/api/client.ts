@@ -1,13 +1,7 @@
 // apps/frontend/src/api/client.ts
-// Master Plan Reference: PROJECT_MASTER_PLAN.md Section 6.1 API Architecture
-// Complete API client with all endpoints (Auth, Programs, Progress, Files, Analytics)
-// Supports BOTH legacy exports (authAPI, programsAPI) AND new pattern (api.auth, api.programs)
+// Complete API client with all endpoints: Auth, Programs, Progress, Files, Analytics, Coach
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
-
-// ============================================
-// CONFIGURATION
-// ============================================
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
@@ -15,7 +9,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/
 // TYPE DEFINITIONS
 // ============================================
 
-// User & Auth Types
 export interface User {
   userId: string;
   email: string;
@@ -37,11 +30,6 @@ export interface AuthResponse {
   };
 }
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
 export interface RegisterData {
   email: string;
   password: string;
@@ -51,7 +39,6 @@ export interface RegisterData {
   countryCode?: string;
 }
 
-// Program Types
 export interface Program {
   programId: string;
   name: string;
@@ -95,7 +82,6 @@ export interface Enrollment {
   program?: Program;
 }
 
-// Progress Types
 export interface StepProgress {
   id: string;
   enrollmentId: string;
@@ -118,7 +104,6 @@ export interface EnrollmentProgress {
   stepProgress: StepProgress[];
 }
 
-// File Upload Types
 export interface FileUploadResponse {
   success: boolean;
   data: {
@@ -129,7 +114,6 @@ export interface FileUploadResponse {
   };
 }
 
-// Analytics/Dashboard Types
 export interface DashboardStats {
   enrolledPrograms: number;
   completedPrograms: number;
@@ -183,37 +167,45 @@ export interface DashboardData {
   quickActions: QuickAction[];
 }
 
-// API Response wrapper
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  meta?: {
-    timestamp: string;
-    requestId?: string;
-  };
-  pagination?: {
-    page: number;
-    perPage: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+// Coach Types
+export interface CoachClient {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl?: string;
+  enrolledPrograms: number;
+  overallProgress: number;
+  lastActive: string | null;
+  status: 'active' | 'inactive' | 'completed';
+}
+
+export interface CoachStats {
+  totalClients: number;
+  activeClients: number;
+  averageClientProgress: number;
+  certificationsEarned: number;
+  pendingCertifications: number;
+}
+
+export interface CoachDashboardData {
+  stats: CoachStats;
+  clients: CoachClient[];
+  clientProgress: any[];
+  certifications: any[];
+  recentClientActivity: any[];
 }
 
 // ============================================
-// AXIOS INSTANCE WITH INTERCEPTORS
+// AXIOS INSTANCE
 // ============================================
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 30000, // 30 seconds
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 30000,
 });
 
-// Request interceptor - adds JWT token to all requests
+// Request interceptor
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
@@ -222,70 +214,54 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
+  (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor - handles token expiry and errors
+// Response interceptor
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Handle 401 Unauthorized - token expired
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      // Try to refresh token
       const refreshToken = localStorage.getItem('refreshToken');
+      
       if (refreshToken) {
         try {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refreshToken,
-          });
+          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
           const { token } = response.data.data;
           localStorage.setItem('token', token);
-
-          // Retry original request with new token
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${token}`;
           }
           return apiClient(originalRequest);
-        } catch (refreshError) {
-          // Refresh failed - clear tokens and redirect to login
+        } catch {
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
           window.location.href = '/login';
-          return Promise.reject(refreshError);
+          return Promise.reject(error);
         }
       } else {
-        // No refresh token - redirect to login
         localStorage.removeItem('token');
         window.location.href = '/login';
       }
     }
-
     return Promise.reject(error);
   }
 );
 
 // ============================================
-// API METHODS - NEW PATTERN (api.auth, api.programs, etc.)
+// API METHODS
 // ============================================
 
 export const api = {
-  // ----------------------------------------
-  // AUTH ENDPOINTS
-  // ----------------------------------------
   auth: {
-    login: async (emailOrData: string | { email: string; password: string }, password?: string): Promise<AuthResponse> => {
-      const email = typeof emailOrData === 'object' ? emailOrData.email : emailOrData; const pwd = typeof emailOrData === 'object' ? emailOrData.password : password!; const response = await apiClient.post('/auth/login', { email, password: pwd });
+    login: async (credentials: { email: string; password: string }): Promise<AuthResponse> => {
+      const response = await apiClient.post('/auth/login', credentials);
       const { token, refreshToken } = response.data.data;
       localStorage.setItem('token', token);
-      if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-      }
+      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
       return response.data;
     },
 
@@ -293,9 +269,7 @@ export const api = {
       const response = await apiClient.post('/auth/register', data);
       const { token, refreshToken } = response.data.data;
       localStorage.setItem('token', token);
-      if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-      }
+      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
       return response.data;
     },
 
@@ -335,9 +309,6 @@ export const api = {
     },
   },
 
-  // ----------------------------------------
-  // PROGRAMS ENDPOINTS
-  // ----------------------------------------
   programs: {
     getAll: async (): Promise<Program[]> => {
       const response = await apiClient.get('/programs');
@@ -365,9 +336,6 @@ export const api = {
     },
   },
 
-  // ----------------------------------------
-  // PROGRESS ENDPOINTS
-  // ----------------------------------------
   progress: {
     getEnrollmentProgress: async (enrollmentId: string): Promise<EnrollmentProgress> => {
       const response = await apiClient.get(`/progress/enrollment/${enrollmentId}`);
@@ -399,10 +367,7 @@ export const api = {
       enrollmentId: string,
       data: { submissionText?: string; submissionFileUrl?: string }
     ): Promise<StepProgress> => {
-      const response = await apiClient.post(`/progress/step/${stepId}/submit`, {
-        enrollmentId,
-        ...data,
-      });
+      const response = await apiClient.post(`/progress/step/${stepId}/submit`, { enrollmentId, ...data });
       return response.data.data;
     },
 
@@ -411,37 +376,39 @@ export const api = {
     },
   },
 
-  // ----------------------------------------
-  // FILES ENDPOINTS
-  // ----------------------------------------
   files: {
     upload: async (file: File): Promise<FileUploadResponse['data']> => {
       const formData = new FormData();
       formData.append('file', file);
-
       const response = await apiClient.post('/files/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       return response.data.data;
     },
   },
 
-  // ----------------------------------------
-  // ANALYTICS ENDPOINTS
-  // ----------------------------------------
   analytics: {
     getDashboard: async (): Promise<DashboardData> => {
       const response = await apiClient.get('/analytics/dashboard');
       return response.data.data;
     },
   },
+
+  coach: {
+    getDashboard: async (): Promise<CoachDashboardData> => {
+      const response = await apiClient.get('/coach/dashboard');
+      return response.data.data;
+    },
+
+    getClientDetails: async (clientId: string): Promise<any> => {
+      const response = await apiClient.get(`/coach/clients/${clientId}`);
+      return response.data.data;
+    },
+  },
 };
 
 // ============================================
-// LEGACY EXPORTS (for backward compatibility)
-// Existing code uses: import { authAPI, programsAPI } from '@/api/client'
+// LEGACY EXPORTS (backward compatibility)
 // ============================================
 
 export const authAPI = {
@@ -481,11 +448,10 @@ export const analyticsAPI = {
   getDashboard: api.analytics.getDashboard,
 };
 
-// ============================================
-// EXPORT AXIOS INSTANCE (for custom requests)
-// ============================================
+export const coachAPI = {
+  getDashboard: api.coach.getDashboard,
+  getClientDetails: api.coach.getClientDetails,
+};
 
 export { apiClient };
-
-// Default export for convenience
 export default api;
