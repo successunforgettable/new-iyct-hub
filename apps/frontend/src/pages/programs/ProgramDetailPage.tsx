@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
 import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { SectionTabs } from '@/components/program/SectionTabs';
@@ -44,6 +45,7 @@ interface Enrollment {
 const ProgramDetailPage: React.FC = () => {
   const { programId } = useParams<{ programId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [program, setProgram] = useState<Program | null>(null);
   const [weeks, setWeeks] = useState<Week[]>([]);
@@ -52,7 +54,7 @@ const ProgramDetailPage: React.FC = () => {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  const [showWeekCompleteModal, setShowWeekCompleteModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -161,106 +163,92 @@ const ProgramDetailPage: React.FC = () => {
     fetchData();
   }, [programId]);
 
-  const currentWeek = weeks[activeWeekIndex];
-  const currentStep = currentWeek?.steps?.[activeStepIndex];
-  const isStepCompleted = currentStep ? completedSteps.includes(currentStep.id) : false;
-
-  const handleMarkComplete = async () => {
-    console.log('🎯 ========================================');
-    console.log('🎯 MARK COMPLETE BUTTON CLICKED');
-    console.log('🎯 ========================================');
-
-    // Pre-flight checks
-    console.log('🔍 Pre-flight checks:');
-    console.log('  - currentStep:', currentStep ? '✅ EXISTS' : '❌ MISSING');
-    console.log('  - enrollment:', enrollment ? '✅ EXISTS' : '❌ MISSING');
-    console.log('  - isMarkingComplete:', isMarkingComplete);
-
-    if (!currentStep) {
-      console.error('❌ No current step selected');
-      return;
-    }
-
-    if (!enrollment) {
-      console.error('❌ No enrollment found');
-      alert('You must be enrolled in this program to mark steps as complete.');
-      return;
-    }
-
-    if (isMarkingComplete) {
-      console.log('⏳ Already marking complete, skipping...');
-      return;
-    }
-
-    if (isStepCompleted) {
-      console.log('✅ Step already completed, skipping...');
-      return;
-    }
-
-    try {
-      setIsMarkingComplete(true);
+  // Complete step mutation
+  const completeStepMutation = useMutation({
+    mutationFn: async ({ stepId, enrollmentId }: { stepId: string; enrollmentId: string }) => {
+      return api.progress.completeStep(stepId, enrollmentId);
+    },
+    onSuccess: async (response, variables) => {
+      console.log('✅ Step marked complete successfully:', response.data);
       
-      console.log('📤 Preparing API request...');
-      console.log('  - enrollmentId:', enrollment.enrollmentId);  // ✅ Correct field
-      console.log('  - stepId:', currentStep.id);
-      console.log('  - stepTitle:', currentStep.title);
-      console.log('  - API endpoint: POST /api/v1/progress/step/' + currentStep.id + '/complete');
-      console.log('  - Payload:', { enrollmentId: enrollment.enrollmentId });
-
-      console.log('🚀 Sending request to backend...');
+      // Update local completed steps
+      setCompletedSteps(prev => [...prev, variables.stepId]);
       
-      const response = await api.progress.completeStep(
-        currentStep.id,
-        enrollment.enrollmentId  // ✅ Use correct field
-      );
-
-      console.log('✅ ========================================');
-      console.log('✅ STEP MARKED AS COMPLETE SUCCESSFULLY!');
-      console.log('✅ ========================================');
-      console.log('Response:', response.data);
-
-      // Update local state
-      setCompletedSteps([...completedSteps, currentStep.id]);
-
-      // Calculate new completion percentage
-      const totalSteps = weeks.reduce((sum, week) => sum + week.steps.length, 0);
-      const newCompletedCount = completedSteps.length + 1;
-      const newPercentage = Math.round((newCompletedCount / totalSteps) * 100);
-
-      setEnrollment({
-        ...enrollment,
-        completionPercentage: newPercentage
-      });
-
-      console.log('📊 Progress updated:', newPercentage + '%', `(${newCompletedCount}/${totalSteps} steps)`);
-
-      // Auto-advance to next step after brief delay
-      setTimeout(() => {
-        handleNextStep();
-      }, 500);
-
-    } catch (error: any) {
-      console.log('❌ ========================================');
-      console.log('❌ ERROR MARKING STEP COMPLETE');
-      console.log('❌ ========================================');
-      console.error('Error object:', error);
-      console.error('Error message:', error.message);
-      console.error('Error response:', error.response);
-      console.error('Response data:', error.response?.data);
-      console.error('Response status:', error.response?.status);
-      console.error('Response headers:', error.response?.headers);
+      // Refetch progress to get updated completion percentage
+      try {
+        const progressResponse = await api.progress.getEnrollmentProgress(variables.enrollmentId);
+        const progressData = progressResponse.data;
+        
+        if (enrollment) {
+          setEnrollment({
+            ...enrollment,
+            completionPercentage: progressData.completionPercentage
+          });
+        }
+        
+        // Extract updated completed steps
+        const completed: string[] = [];
+        progressData.weeks?.forEach((week: any) => {
+          week.steps?.forEach((step: any) => {
+            if (step.status === 'completed') {
+              completed.push(step.stepId);
+            }
+          });
+        });
+        setCompletedSteps(completed);
+      } catch (error) {
+        console.error('Error refetching progress:', error);
+      }
       
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['enrollment-progress', variables.enrollmentId] });
+    },
+    onError: (error: any) => {
+      console.error('❌ Error completing step:', error);
       if (error.response?.status === 404) {
-        alert('Progress tracking endpoint not found. Please ensure backend is running with latest code.');
+        alert('Progress tracking endpoint not found. Please ensure backend is running.');
       } else if (error.response?.status === 401) {
         alert('Authentication required. Please login again.');
         navigate('/login');
       } else {
         alert('Failed to mark step as complete. Please try again.');
       }
-    } finally {
-      setIsMarkingComplete(false);
-      console.log('🏁 Mark complete operation finished');
+    }
+  });
+
+  const currentWeek = weeks[activeWeekIndex];
+  const currentStep = currentWeek?.steps?.[activeStepIndex];
+  const isStepCompleted = currentStep ? completedSteps.includes(currentStep.id) : false;
+
+  // Helper function to check if current week is complete
+  const isWeekComplete = (weekIndex: number): boolean => {
+    const week = weeks[weekIndex];
+    if (!week) return false;
+    return week.steps.every(step => completedSteps.includes(step.id));
+  };
+
+  const handleMarkComplete = async () => {
+    if (!currentStep || !enrollment || isStepCompleted || completeStepMutation.isPending) {
+      return;
+    }
+
+    try {
+      await completeStepMutation.mutateAsync({
+        stepId: currentStep.id,
+        enrollmentId: enrollment.enrollmentId
+      });
+
+      // Check if week is complete after this step
+      if (isWeekComplete(activeWeekIndex)) {
+        setShowWeekCompleteModal(true);
+      } else {
+        // Auto-advance to next step
+        setTimeout(() => {
+          handleNextStep();
+        }, 500);
+      }
+    } catch (error) {
+      // Error handled by mutation onError
     }
   };
 
@@ -283,14 +271,6 @@ const ProgramDetailPage: React.FC = () => {
       setActiveStepIndex(weeks[activeWeekIndex - 1]?.steps.length - 1 || 0);
     }
   };
-
-  // Debug: Log button state
-  console.log('🔘 Mark Complete Button State:');
-  console.log('  - isStepCompleted:', isStepCompleted);
-  console.log('  - isMarkingComplete:', isMarkingComplete);
-  console.log('  - enrollment exists:', !!enrollment);
-  console.log('  - Button disabled:', !enrollment || isStepCompleted || isMarkingComplete);
-  console.log('  - Button text:', isMarkingComplete ? 'Marking...' : isStepCompleted ? '✓ Completed' : 'Mark Complete');
 
   if (isLoading) {
     return (
@@ -396,21 +376,21 @@ const ProgramDetailPage: React.FC = () => {
               <div className="flex gap-4">
                 <button
                   onClick={handleMarkComplete}
-                  disabled={!enrollment || isStepCompleted || isMarkingComplete}
+                  disabled={!enrollment || isStepCompleted || completeStepMutation.isPending}
                   className={`px-8 py-3 rounded-lg font-medium transition-all ${
                     isStepCompleted
                       ? 'bg-green-500 text-white cursor-default'
                       : !enrollment
                       ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                      : isMarkingComplete
+                      : completeStepMutation.isPending
                       ? 'bg-blue-400 text-white cursor-wait'
                       : 'bg-[#5dade2] text-white hover:bg-[#7dc8f0] cursor-pointer'
                   }`}
                 >
-                  {isMarkingComplete 
-                    ? 'Marking...' 
-                    : isStepCompleted 
-                    ? '✓ Completed' 
+                  {completeStepMutation.isPending
+                    ? 'Marking...'
+                    : isStepCompleted
+                    ? '✓ Completed'
                     : !enrollment
                     ? 'Not Enrolled'
                     : 'Mark Complete'
@@ -472,6 +452,38 @@ const ProgramDetailPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Week Complete Modal */}
+      {showWeekCompleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#1a2332] rounded-xl p-8 max-w-md mx-4 border border-[#2a3b52]">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Week {activeWeekIndex + 1} Complete!
+              </h2>
+              <p className="text-gray-300 mb-6">
+                Congratulations! You've completed all steps in Week {activeWeekIndex + 1}.
+              </p>
+              <button
+                onClick={() => {
+                  setShowWeekCompleteModal(false);
+                  if (activeWeekIndex < weeks.length - 1) {
+                    setActiveWeekIndex(activeWeekIndex + 1);
+                    setActiveStepIndex(0);
+                  }
+                }}
+                className="bg-[#5dade2] text-white px-6 py-3 rounded-lg hover:bg-[#7dc8f0]"
+              >
+                {activeWeekIndex < weeks.length - 1 
+                  ? `Continue to Week ${activeWeekIndex + 2}`
+                  : 'Finish Program'
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
