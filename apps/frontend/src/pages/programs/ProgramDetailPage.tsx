@@ -1,476 +1,458 @@
-import React, { useEffect, useState } from 'react';
+// apps/frontend/src/pages/programs/ProgramDetailPage.tsx
+// Original PHP Layout: Breadcrumb, Week Tabs, 2-Column (Step Info + Video), Step Carousel
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/api/client';
-import { Breadcrumb } from '@/components/navigation/Breadcrumb';
-import { SectionTabs } from '@/components/program/SectionTabs';
-import { VideoPlayer } from '@/components/ui/VideoPlayer';
-import { StepCarousel } from '@/components/program/StepCarousel';
+import { api } from '../../api/client';
 
-interface Program {
-  id: string;
-  name: string;
-  description?: string;
-  durationWeeks: number;
-}
+// Design System Colors
+const colors = {
+  background: '#0a1628',
+  card: '#1a2332',
+  cardHover: '#1f2940',
+  border: '#2a3b52',
+  accent: '#5dade2',
+  accentHover: '#7dc8f0',
+  success: '#34c38f',
+  warning: '#f0ad4e',
+  error: '#dc3545',
+  textPrimary: '#ffffff',
+  textSecondary: '#e0e0e0',
+  textMuted: '#a0a0a0',
+};
 
-interface Step {
-  id: string;
-  stepNumber: number;
-  title: string;
-  contentType: string;
-  contentUrl?: string;
-  contentHtml?: string;
-  durationMinutes?: number;
-}
+// Icons
+const Icons = {
+  ArrowLeft: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+  ),
+  ChevronRight: () => (
+    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    </svg>
+  ),
+  ChevronLeft: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    </svg>
+  ),
+  Check: () => (
+    <svg className="w-4 h-4" fill="none" stroke={colors.success} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  ),
+  CheckCircle: () => (
+    <svg className="w-5 h-5" fill="none" stroke={colors.success} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  Play: () => (
+    <svg className="w-16 h-16" fill={colors.accent} viewBox="0 0 24 24">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  ),
+  Clock: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+};
 
-interface Week {
-  id: string;
-  weekNumber: number;
-  title: string;
-  description?: string;
-  steps: Step[];
-}
+// Section Tab Component (Week tabs with checkmarks)
+const SectionTab: React.FC<{
+  label: string;
+  isActive: boolean;
+  isCompleted: boolean;
+  onClick: () => void;
+}> = ({ label, isActive, isCompleted, onClick }) => (
+  <button
+    onClick={onClick}
+    className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2"
+    style={{
+      backgroundColor: isActive ? colors.accent : colors.card,
+      color: isActive ? colors.textPrimary : isCompleted ? colors.textPrimary : colors.textMuted,
+      border: `1px solid ${isActive ? colors.accent : isCompleted ? 'rgba(93, 173, 226, 0.3)' : colors.border}`,
+    }}
+  >
+    {label}
+    {isCompleted && <Icons.Check />}
+  </button>
+);
 
-interface Enrollment {
-  enrollmentId: string;
-  program: {
-    id: string;
-    name: string;
-  };
-  completionPercentage: number;
-  currentWeek: number;
-}
+// Video Player Component
+const VideoPlayer: React.FC<{
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  duration?: string;
+  currentStep: number;
+  totalSteps: number;
+}> = ({ videoUrl, thumbnailUrl, duration = '06:13', currentStep, totalSteps }) => (
+  <div className="rounded-xl overflow-hidden" style={{ backgroundColor: colors.card }}>
+    {/* Video Area */}
+    <div className="relative aspect-video bg-black flex items-center justify-center">
+      {thumbnailUrl ? (
+        <img src={thumbnailUrl} alt="Video thumbnail" className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />
+      )}
+      {/* Play Button Overlay */}
+      <button className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors">
+        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(93, 173, 226, 0.9)' }}>
+          <Icons.Play />
+        </div>
+      </button>
+    </div>
+    {/* Video Info */}
+    <div className="p-4 flex items-center justify-between">
+      <div className="flex items-center gap-2" style={{ color: colors.textMuted }}>
+        <Icons.Clock />
+        <span className="text-sm">{duration}</span>
+      </div>
+      <span className="text-sm" style={{ color: colors.accent }}>
+        {currentStep} of {totalSteps} steps
+      </span>
+    </div>
+  </div>
+);
 
+// Step Card for Carousel
+const StepCard: React.FC<{
+  step: any;
+  isActive: boolean;
+  isCompleted: boolean;
+  onClick: () => void;
+}> = ({ step, isActive, isCompleted, onClick }) => (
+  <div
+    onClick={onClick}
+    className="flex-shrink-0 w-48 p-4 rounded-lg cursor-pointer transition-all"
+    style={{
+      backgroundColor: isActive ? colors.accent : colors.card,
+      border: `2px solid ${isActive ? colors.accent : isCompleted ? colors.success : colors.border}`,
+    }}
+  >
+    <div className="flex items-center justify-between mb-2">
+      <span className="text-xs font-medium" style={{ color: isActive ? colors.textPrimary : colors.textMuted }}>
+        STEP {step.stepNumber}
+      </span>
+      {isCompleted && <Icons.CheckCircle />}
+    </div>
+    <p className="text-sm font-medium line-clamp-2" style={{ color: isActive ? colors.textPrimary : colors.textSecondary }}>
+      {step.title}
+    </p>
+  </div>
+);
+
+// Main Component
 const ProgramDetailPage: React.FC = () => {
   const { programId } = useParams<{ programId: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
-  const [program, setProgram] = useState<Program | null>(null);
-  const [weeks, setWeeks] = useState<Week[]>([]);
-  const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
-  const [activeWeekIndex, setActiveWeekIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [program, setProgram] = useState<any>(null);
+  const [weeks, setWeeks] = useState<any[]>([]);
+  const [enrollment, setEnrollment] = useState<any>(null);
+  const [stepProgress, setStepProgress] = useState<Record<string, any>>({});
+  
+  const [activeWeek, setActiveWeek] = useState(1);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showWeekCompleteModal, setShowWeekCompleteModal] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!programId) return;
 
       try {
-        console.log('🔄 Fetching program data for:', programId);
+        setLoading(true);
+        setError(null);
 
-        // Fetch program details
-        const programResponse = await api.programs.getById(programId);
-        const programData = programResponse.data;
-        setProgram(programData);
-        console.log('✅ Program loaded:', programData.name);
+        // Fetch program
+        const programRes = await api.programs.getById(programId);
+        const prog = programRes?.data || programRes;
+        if (!prog) throw new Error('Program not found');
+        setProgram(prog);
 
         // Fetch weeks
-        const weeksResponse = await api.programs.getWeeks(programId);
-        const weeksData = weeksResponse.data;
-        setWeeks(weeksData);
-        console.log('✅ Weeks loaded:', weeksData.length, 'weeks');
+        const weeksRes = await api.programs.getWeeks(programId);
+        const weeksData = weeksRes?.data || weeksRes || [];
+        setWeeks(Array.isArray(weeksData) ? weeksData : []);
 
-        // Fetch user enrollments
-        console.log('🔄 Fetching user enrollments...');
-        const enrollmentsResponse = await api.programs.getEnrolled();
-        const enrollments = enrollmentsResponse.data;
+        // Fetch enrollment
+        try {
+          const enrollRes = await api.programs.getEnrolled();
+          const enrollments = enrollRes?.data || enrollRes || [];
+          const found = enrollments.find((e: any) => e.program?.id === programId || e.programId === programId);
+          
+          if (found) {
+            setEnrollment(found);
+            setActiveWeek(found.currentWeek || 1);
 
-        console.log('📦 Raw enrollments response:', enrollments);
-        console.log('📊 Number of enrollments:', enrollments.length);
-
-        enrollments.forEach((e: any, index: number) => {
-          console.log(`Enrollment ${index + 1}:`, {
-            enrollmentId: e.enrollmentId,
-            programId: e.program?.id,
-            programName: e.program?.name || 'Unknown',
-            fullObject: e
-          });
-        });
-
-        console.log('🔍 Looking for programId:', programId);
-
-        let currentEnrollment = enrollments.find((e: any) => 
-          e.program?.id === programId
-        );
-
-        if (!currentEnrollment) {
-          console.log('⚠️ First attempt failed, trying string comparison...');
-          currentEnrollment = enrollments.find((e: any) => 
-            String(e.program?.id) === String(programId)
-          );
-        }
-
-        if (currentEnrollment) {
-          console.log('✅ Enrollment found:', currentEnrollment.enrollmentId);
-          console.log('📊 Current completion:', currentEnrollment.completionPercentage + '%');
-          setEnrollment(currentEnrollment);
-
-          // Fetch progress
-          console.log('🔄 Fetching enrollment progress...');
-          try {
-            const progressResponse = await api.progress.getEnrollmentProgress(
-              currentEnrollment.enrollmentId
-            );
-            const progressData = progressResponse.data;
-            
-            // ✅ FIXED: API returns stepProgress array, not weeks.steps
-            const completed: string[] = [];
-            progressData.stepProgress?.forEach((progress: any) => {
-              // Handle both uppercase and lowercase status
-              if (progress.status === 'COMPLETED' || progress.status === 'completed') {
-                completed.push(progress.stepId);
+            // Fetch progress
+            try {
+              const progressRes = await api.progress.getEnrollmentProgress(found.enrollmentId);
+              const progressData = progressRes?.data || progressRes;
+              if (progressData?.stepProgress) {
+                const map: Record<string, any> = {};
+                progressData.stepProgress.forEach((sp: any) => {
+                  map[sp.stepId] = sp;
+                });
+                setStepProgress(map);
               }
-            });
-            
-            setCompletedSteps(completed);
-            console.log('✅ Progress loaded, completed steps:', completed.length);
-            
-            // Update completion percentage
-            if (currentEnrollment.completionPercentage !== progressData.completionPercentage) {
-              setEnrollment({
-                ...currentEnrollment,
-                completionPercentage: progressData.completionPercentage
-              });
-            }
-          } catch (error: any) {
-            if (error.response?.status === 404) {
-              console.log('ℹ️ No progress found yet (first time viewing program)');
-              console.log('Error details:', error.response?.data);
-            } else {
-              console.error('❌ Error fetching progress:', error);
-            }
+            } catch (e) { console.log('No progress data'); }
           }
-        } else {
-          console.log('⚠️ No enrollment found for this program');
-          console.log('💡 User may need to enroll first');
-        }
+        } catch (e) { console.log('No enrollment'); }
 
-      } catch (error) {
-        console.error('❌ Error fetching program data:', error);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
     fetchData();
   }, [programId]);
 
-  // Complete step mutation
-  const completeStepMutation = useMutation({
-    mutationFn: async ({ stepId, enrollmentId }: { stepId: string; enrollmentId: string }) => {
-      return api.progress.completeStep(stepId, enrollmentId);
-    },
-    onSuccess: async (response, variables) => {
-      console.log('✅ Step marked complete successfully:', response.data);
-      
-      // Update local completed steps immediately
-      setCompletedSteps(prev => [...prev, variables.stepId]);
-      
-      // Refetch progress to get updated completion percentage
-      try {
-        const progressResponse = await api.progress.getEnrollmentProgress(variables.enrollmentId);
-        const progressData = progressResponse.data;
-        
-        if (enrollment) {
-          setEnrollment({
-            ...enrollment,
-            completionPercentage: progressData.completionPercentage
-          });
-        }
-        
-      } catch (error) {
-        console.error('Error refetching progress:', error);
-      }
-      
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['enrollment-progress', variables.enrollmentId] });
-    },
-    onError: (error: any) => {
-      console.error('❌ Error completing step:', error);
-      if (error.response?.status === 404) {
-        alert('Progress tracking endpoint not found. Please ensure backend is running.');
-      } else if (error.response?.status === 401) {
-        alert('Authentication required. Please login again.');
-        navigate('/login');
-      } else {
-        alert('Failed to mark step as complete. Please try again.');
-      }
-    }
-  });
+  // Get current week and step data
+  const currentWeekData = weeks.find((w: any) => w.weekNumber === activeWeek);
+  const steps = currentWeekData?.steps || [];
+  const currentStep = steps[activeStepIndex];
+  const isStepCompleted = currentStep && (
+    stepProgress[currentStep.id]?.status === 'COMPLETED' ||
+    stepProgress[currentStep.id]?.status === 'completed' ||
+    stepProgress[currentStep.stepId]?.status === 'COMPLETED' ||
+    stepProgress[currentStep.stepId]?.status === 'completed'
+  );
 
-  const currentWeek = weeks[activeWeekIndex];
-  const currentStep = currentWeek?.steps?.[activeStepIndex];
-  const isStepCompleted = currentStep ? completedSteps.includes(currentStep.id) : false;
-
-  // Helper function to check if current week is complete
-  const isWeekComplete = (weekIndex: number): boolean => {
-    const week = weeks[weekIndex];
-    if (!week) return false;
-    return week.steps.every(step => completedSteps.includes(step.id));
-  };
-
+  // Handle step completion
   const handleMarkComplete = async () => {
-    if (!currentStep || !enrollment || isStepCompleted || completeStepMutation.isPending) {
-      return;
-    }
+    if (!enrollment || !currentStep || completing) return;
 
+    setCompleting(true);
     try {
-      await completeStepMutation.mutateAsync({
-        stepId: currentStep.id,
-        enrollmentId: enrollment.enrollmentId
-      });
+      const stepId = currentStep.id || currentStep.stepId;
+      await api.progress.completeStep(stepId, enrollment.enrollmentId);
 
-      // Check if week is complete after this step
-      if (isWeekComplete(activeWeekIndex)) {
-        setShowWeekCompleteModal(true);
-      } else {
-        // Auto-advance to next step
-        setTimeout(() => {
-          handleNextStep();
-        }, 500);
+      // Update local state
+      setStepProgress(prev => ({
+        ...prev,
+        [stepId]: { ...prev[stepId], status: 'COMPLETED' }
+      }));
+
+      // Auto-advance to next step
+      if (activeStepIndex < steps.length - 1) {
+        setActiveStepIndex(activeStepIndex + 1);
       }
-    } catch (error) {
-      // Error handled by mutation onError
+    } catch (err) {
+      console.error('Error completing step:', err);
+    } finally {
+      setCompleting(false);
     }
   };
 
-  const handleNextStep = () => {
-    if (!currentWeek) return;
-
-    if (activeStepIndex < currentWeek.steps.length - 1) {
-      setActiveStepIndex(activeStepIndex + 1);
-    } else if (activeWeekIndex < weeks.length - 1) {
-      setActiveWeekIndex(activeWeekIndex + 1);
+  // Handle enrollment
+  const handleEnroll = async () => {
+    if (!programId) return;
+    try {
+      const res = await api.programs.enroll(programId);
+      setEnrollment(res?.data || res);
+      setActiveWeek(1);
       setActiveStepIndex(0);
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to enroll');
     }
   };
 
-  const handlePreviousStep = () => {
-    if (activeStepIndex > 0) {
-      setActiveStepIndex(activeStepIndex - 1);
-    } else if (activeWeekIndex > 0) {
-      setActiveWeekIndex(activeWeekIndex - 1);
-      setActiveStepIndex(weeks[activeWeekIndex - 1]?.steps.length - 1 || 0);
-    }
+  // Calculate week completion
+  const isWeekCompleted = (week: any) => {
+    const weekSteps = week.steps || [];
+    if (weekSteps.length === 0) return false;
+    return weekSteps.every((s: any) => {
+      const p = stepProgress[s.id] || stepProgress[s.stepId];
+      return p?.status === 'COMPLETED' || p?.status === 'completed';
+    });
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.background }}>
+        <div className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: colors.accent, borderTopColor: 'transparent' }} />
       </div>
     );
   }
 
-  if (!program || !weeks.length) {
+  if (error || !program) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-white text-xl">Program not found</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.background }}>
+        <div className="text-center">
+          <p className="mb-4" style={{ color: colors.error }}>{error || 'Program not found'}</p>
+          <button onClick={() => navigate('/programs')} className="px-4 py-2 rounded-lg" style={{ backgroundColor: colors.accent, color: colors.textPrimary }}>
+            Back to Programs
+          </button>
+        </div>
       </div>
     );
   }
-
-  const totalSteps = weeks.reduce((sum, week) => sum + week.steps.length, 0);
-  const completionPercentage = enrollment?.completionPercentage || 0;
 
   return (
-    <div className="min-h-screen bg-[#0a1628]">
+    <div className="min-h-screen" style={{ backgroundColor: colors.background }}>
       {/* Breadcrumb */}
-      <div className="border-b border-[#2a3b52] bg-[#1a2332] px-6 py-4">
-        <Breadcrumb
-          items={[
-            { label: 'Programs', path: '/programs' },
-            { label: program.name, path: `/programs/${program.id}` },
-            { label: currentWeek?.title || 'Week 1' },
-            { label: currentStep?.title || 'Step 1' }
-          ]}
-        />
+      <div className="px-6 py-4 flex items-center gap-2 text-sm" style={{ borderBottom: `1px solid ${colors.border}` }}>
+        <button onClick={() => navigate('/programs')} className="flex items-center gap-2 hover:text-white transition-colors" style={{ color: colors.textMuted }}>
+          <Icons.ArrowLeft />
+          Back
+        </button>
+        <span style={{ color: colors.textMuted }}>|</span>
+        <span style={{ color: colors.textMuted }}>Program</span>
+        <Icons.ChevronRight />
+        <span style={{ color: colors.textMuted }}>{program.name}</span>
+        {currentWeekData && (
+          <>
+            <Icons.ChevronRight />
+            <span style={{ color: colors.textMuted }}>Week {activeWeek}</span>
+          </>
+        )}
+        {currentStep && (
+          <>
+            <Icons.ChevronRight />
+            <span style={{ color: colors.textPrimary }}>STEP {currentStep.stepNumber}</span>
+          </>
+        )}
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        {/* Warning if not enrolled */}
-        {!enrollment && (
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
-            <p className="text-yellow-500 font-medium">
-              ⚠️ You are not enrolled in this program. Some features may be limited.
-            </p>
-          </div>
-        )}
-
-        {/* Program Header */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
-          {/* Program Info */}
-          <div className="bg-[#1a2332] rounded-xl p-6 border border-[#2a3b52]">
-            <h1 className="text-white text-2xl font-semibold mb-4">
-              {program.name}
-            </h1>
-            <div className="text-gray-400 text-sm mb-2">
-              Week {activeWeekIndex + 1} of {weeks.length}
-            </div>
-          </div>
-
-          {/* Progress Card */}
-          <div className="bg-[#1a2332] rounded-xl p-6 border border-[#2a3b52]">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <div className="text-white font-semibold text-lg mb-1">Program Progress</div>
-                <div className="text-[#5dade2] text-3xl font-bold">{completionPercentage}%</div>
-              </div>
-            </div>
-            <div className="text-gray-400 text-sm">
-              {completedSteps.length} of {totalSteps} steps completed
-            </div>
-          </div>
-        </div>
-
-        {/* Week Tabs */}
-        <div className="mb-8">
-          <SectionTabs
-            weeks={weeks}
-            activeWeek={activeWeekIndex + 1}
-            onWeekChange={(weekNum) => setActiveWeekIndex(weekNum - 1)}
-            completedWeeks={[]}
+      {/* Week Tabs */}
+      <div className="px-6 py-4 flex gap-3 overflow-x-auto" style={{ borderBottom: `1px solid ${colors.border}` }}>
+        {weeks.map((week: any) => (
+          <SectionTab
+            key={week.id || week.weekId}
+            label={week.title || `Week ${week.weekNumber}`}
+            isActive={activeWeek === week.weekNumber}
+            isCompleted={isWeekCompleted(week)}
+            onClick={() => { setActiveWeek(week.weekNumber); setActiveStepIndex(0); }}
           />
-        </div>
+        ))}
+      </div>
 
-        {/* Step Content */}
-        {currentStep && (
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            {/* Left: Content */}
-            <div className="bg-[#1a2332] rounded-xl p-6 border border-[#2a3b52]">
-              <div className="text-gray-400 text-sm mb-2">
-                STEP {currentStep.stepNumber}
-              </div>
-
-              <h2 className="text-[#5dade2] text-3xl font-semibold uppercase mb-6">
+      {/* Main Content - 2 Column Layout */}
+      <div className="p-6">
+        {!enrollment ? (
+          // Not Enrolled State
+          <div className="text-center py-16">
+            <h2 className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>{program.name}</h2>
+            <p className="mb-6" style={{ color: colors.textMuted }}>{program.description || 'Start your learning journey'}</p>
+            <button onClick={handleEnroll} className="px-8 py-3 rounded-lg font-medium text-lg" style={{ backgroundColor: colors.accent, color: colors.textPrimary }}>
+              Enroll Now
+            </button>
+          </div>
+        ) : currentStep ? (
+          // Step Content - 2 Column
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column - Step Info */}
+            <div className="p-6 rounded-xl" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+              <span className="text-sm font-medium" style={{ color: colors.textMuted }}>STEP {currentStep.stepNumber}</span>
+              <h2 className="text-2xl font-bold mt-2 mb-4 uppercase" style={{ color: colors.accent }}>
                 {currentStep.title}
               </h2>
-
-              {currentStep.contentHtml && (
-                <div
-                  className="text-gray-300 text-base leading-relaxed mb-8"
-                  dangerouslySetInnerHTML={{ __html: currentStep.contentHtml }}
-                />
+              
+              {currentStep.description && (
+                <p className="mb-6" style={{ color: colors.textSecondary }}>
+                  {currentStep.description}
+                </p>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-4">
-                <button
-                  onClick={handleMarkComplete}
-                  disabled={!enrollment || isStepCompleted || completeStepMutation.isPending}
-                  className={`px-8 py-3 rounded-lg font-medium transition-all ${
-                    isStepCompleted
-                      ? 'bg-green-500 text-white cursor-default'
-                      : !enrollment
-                      ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                      : completeStepMutation.isPending
-                      ? 'bg-blue-400 text-white cursor-wait'
-                      : 'bg-[#5dade2] text-white hover:bg-[#7dc8f0] cursor-pointer'
-                  }`}
-                >
-                  {completeStepMutation.isPending
-                    ? 'Marking...'
-                    : isStepCompleted
-                    ? '✓ Completed'
-                    : !enrollment
-                    ? 'Not Enrolled'
-                    : 'Mark Complete'
-                  }
-                </button>
+              <div className="flex flex-col gap-4">
+                {!isStepCompleted ? (
+                  <button
+                    onClick={handleMarkComplete}
+                    disabled={completing}
+                    className="px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: colors.accent, color: colors.textPrimary }}
+                  >
+                    {completing ? 'Completing...' : 'Mark as Complete ▸'}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 py-3" style={{ color: colors.success }}>
+                    <Icons.CheckCircle />
+                    <span className="font-medium">Step Completed</span>
+                  </div>
+                )}
 
-                <button
-                  onClick={handleNextStep}
-                  className="bg-[#5dade2] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#7dc8f0] transition-all"
-                >
-                  Next Step →
-                </button>
+                {/* Next Step Button */}
+                {activeStepIndex < steps.length - 1 && (
+                  <button
+                    onClick={() => setActiveStepIndex(activeStepIndex + 1)}
+                    className="px-6 py-3 rounded-lg font-medium transition-colors"
+                    style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}`, color: colors.textPrimary }}
+                  >
+                    Next Step →
+                  </button>
+                )}
               </div>
-
-              {isStepCompleted && (
-                <div className="text-green-500 text-sm font-medium mt-4">
-                  ✓ Step Completed
-                </div>
-              )}
             </div>
 
-            {/* Right: Video Player */}
-            <div>
-              <VideoPlayer
-                src={currentStep.contentUrl}
-                thumbnail={currentStep.contentUrl}
-                duration={currentStep.durationMinutes ? `${currentStep.durationMinutes} min` : undefined}
-              />
-            </div>
+            {/* Right Column - Video Player */}
+            <VideoPlayer
+              videoUrl={currentStep.videoUrl}
+              thumbnailUrl={currentStep.thumbnailUrl}
+              duration={currentStep.duration || '06:13'}
+              currentStep={activeStepIndex + 1}
+              totalSteps={steps.length}
+            />
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p style={{ color: colors.textMuted }}>No steps available for this week</p>
           </div>
         )}
 
         {/* Step Carousel */}
-        {currentWeek && (
-          <StepCarousel
-            steps={currentWeek.steps}
-            activeStepIndex={activeStepIndex}
-            onStepClick={setActiveStepIndex}
-            completedSteps={completedSteps}
-          />
-        )}
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
-          <button
-            onClick={handlePreviousStep}
-            disabled={activeWeekIndex === 0 && activeStepIndex === 0}
-            className="bg-[#2a3b52] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#3d5170] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            ← Previous
-          </button>
-
-          <button
-            onClick={handleNextStep}
-            disabled={activeWeekIndex === weeks.length - 1 && activeStepIndex === currentWeek.steps.length - 1}
-            className="bg-[#5dade2] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#7dc8f0] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next Step →
-          </button>
-        </div>
-      </div>
-
-      {/* Week Complete Modal */}
-      {showWeekCompleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#1a2332] rounded-xl p-8 max-w-md mx-4 border border-[#2a3b52]">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Week {activeWeekIndex + 1} Complete!
-              </h2>
-              <p className="text-gray-300 mb-6">
-                Congratulations! You've completed all steps in Week {activeWeekIndex + 1}.
-              </p>
-              <button
-                onClick={() => {
-                  setShowWeekCompleteModal(false);
-                  if (activeWeekIndex < weeks.length - 1) {
-                    setActiveWeekIndex(activeWeekIndex + 1);
-                    setActiveStepIndex(0);
-                  }
-                }}
-                className="bg-[#5dade2] text-white px-6 py-3 rounded-lg hover:bg-[#7dc8f0]"
-              >
-                {activeWeekIndex < weeks.length - 1 
-                  ? `Continue to Week ${activeWeekIndex + 2}`
-                  : 'Finish Program'
-                }
-              </button>
+        {steps.length > 0 && enrollment && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold" style={{ color: colors.textPrimary }}>
+                {currentWeekData?.title || `Week ${activeWeek}`} - {steps.length} Steps
+              </h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveStepIndex(Math.max(0, activeStepIndex - 1))}
+                  disabled={activeStepIndex === 0}
+                  className="p-2 rounded-lg disabled:opacity-30"
+                  style={{ backgroundColor: colors.card, color: colors.textPrimary }}
+                >
+                  <Icons.ChevronLeft />
+                </button>
+                <button
+                  onClick={() => setActiveStepIndex(Math.min(steps.length - 1, activeStepIndex + 1))}
+                  disabled={activeStepIndex === steps.length - 1}
+                  className="p-2 rounded-lg disabled:opacity-30"
+                  style={{ backgroundColor: colors.card, color: colors.textPrimary }}
+                >
+                  <Icons.ChevronRight />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {steps.map((step: any, index: number) => {
+                const stepId = step.id || step.stepId;
+                const progress = stepProgress[stepId];
+                const completed = progress?.status === 'COMPLETED' || progress?.status === 'completed';
+                
+                return (
+                  <StepCard
+                    key={stepId}
+                    step={step}
+                    isActive={index === activeStepIndex}
+                    isCompleted={completed}
+                    onClick={() => setActiveStepIndex(index)}
+                  />
+                );
+              })}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
