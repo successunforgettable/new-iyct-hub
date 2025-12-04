@@ -155,7 +155,7 @@ class AnalyticsService {
       ).length;
 
       return {
-        programId: program.programId,
+        programId: program.id || program.programId,
         programName: program.name,
         completionPercentage: enrollment.completionPercentage || 0,
         currentWeek: enrollment.currentWeek || 1,
