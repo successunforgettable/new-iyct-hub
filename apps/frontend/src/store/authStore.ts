@@ -1,84 +1,89 @@
 // apps/frontend/src/store/authStore.ts
+// Zustand store for authentication state
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface User {
-  id: string;
+  userId: string;
   email: string;
   fullName: string;
   userRole: string;
+  avatarUrl?: string;
 }
 
 interface AuthState {
-  user: User | null;
   token: string | null;
+  refreshToken: string | null;
+  user: User | null;
   isAuthenticated: boolean;
-  login: (token: string, user: User) => void;
+  
+  // Actions
+  setAuth: (token: string, refreshToken: string | null, user: User) => void;
+  setToken: (token: string) => void;
+  setUser: (user: User) => void;
   logout: () => void;
-  setUser: (user: User | null) => void;
+  clearAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
       token: null,
+      refreshToken: null,
+      user: null,
       isAuthenticated: false,
 
-      login: (token: string, user: User) => {
-        console.log('🔐 AuthStore.login called');
-        console.log('  - Token:', token.substring(0, 20) + '...');
-        console.log('  - User:', user);
-        
-        // Save to localStorage FIRST
+      setAuth: (token, refreshToken, user) => {
         localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        
-        // Then update store
+        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         set({
           token,
+          refreshToken,
           user,
           isAuthenticated: true,
         });
-        
-        console.log('✅ AuthStore updated successfully');
+      },
+
+      setToken: (token) => {
+        localStorage.setItem('token', token);
+        set({ token, isAuthenticated: true });
+      },
+
+      setUser: (user) => {
+        set({ user });
       },
 
       logout: () => {
-        console.log('🚪 AuthStore.logout called');
-        
-        // Clear localStorage
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        
-        // Clear store
+        localStorage.removeItem('refreshToken');
         set({
           token: null,
+          refreshToken: null,
           user: null,
           isAuthenticated: false,
         });
-        
-        console.log('✅ Logged out successfully');
       },
 
-      setUser: (user: User | null) => {
-        set({ user });
+      clearAuth: () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        set({
+          token: null,
+          refreshToken: null,
+          user: null,
+          isAuthenticated: false,
+        });
       },
     }),
     {
       name: 'auth-storage',
-      // Only persist token and user, not isAuthenticated
       partialize: (state) => ({
         token: state.token,
+        refreshToken: state.refreshToken,
         user: state.user,
+        isAuthenticated: state.isAuthenticated,
       }),
-      // After rehydration, set isAuthenticated based on token
-      onRehydrateStorage: () => (state) => {
-        if (state?.token) {
-          state.isAuthenticated = true;
-          console.log('🔄 Auth rehydrated from storage');
-        }
-      },
     }
   )
 );

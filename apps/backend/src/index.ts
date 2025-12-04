@@ -1,3 +1,6 @@
+// apps/backend/src/index.ts
+// Complete with all routes: auth, programs, progress, files, analytics, admin
+
 import express, { Request, Response, ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -10,6 +13,7 @@ import programRoutes from './routes/program.routes';
 import progressRoutes from './routes/progress.routes';
 import fileRoutes from './routes/file.routes';
 import analyticsRoutes from './routes/analytics.routes';
+import adminRoutes from './routes/admin.routes';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -36,6 +40,7 @@ app.use('/api/v1/programs', programRoutes);
 app.use('/api/v1/progress', progressRoutes);
 app.use('/api/v1/files', fileRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Endpoint not found' } });
@@ -61,7 +66,11 @@ const startServer = async () => {
     console.log('✅ Database connected');
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
-      console.log(`👨‍🏫 Coach API: http://localhost:${PORT}/api/v1/coach`);
+      console.log(`🔐 Auth API: http://localhost:${PORT}/api/v1/auth`);
+      console.log(`📚 Programs API: http://localhost:${PORT}/api/v1/programs`);
+      console.log(`📊 Progress API: http://localhost:${PORT}/api/v1/progress`);
+      console.log(`📈 Analytics API: http://localhost:${PORT}/api/v1/analytics`);
+      console.log(`👑 Admin API: http://localhost:${PORT}/api/v1/admin`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
