@@ -204,14 +204,15 @@ When a step has an activity, trigger the corresponding tool:
 | Phase 1-2 | Foundation & Auth | ✅ 100% Complete |
 | Core Platform | Programs, Progress, Dashboard | ✅ 100% Complete |
 | PHP Layout Match | Horizontal nav, Hub style | ✅ 100% Complete |
-| Admin Panel MVP | Dashboard, Users, Programs | 🔄 NEXT (Per Session 11) |
+| Admin Panel MVP | Dashboard, Users, Programs | ✅ 100% Complete |
+| Data Seeding | Programs, Weeks, Steps | ⚠️ 32/49 programs, 0 weeks, 0 steps |
 | Phase 3 | Payments (Stripe/Cashfree) | 📋 Week 5-6 |
 | Phase 4 | Inner DNA Integration | 📋 Week 7-8 (Extended) |
 | Phase 5 | AI Features Core | 📋 Week 9-10 |
 | Phase 6 | AI Features Advanced | 📋 Week 11-12 |
 | Phase 7-8 | Certifications & Migration | 📋 Week 13-16 |
 
-**Overall Progress:** ~55% Complete
+**Overall Progress:** ~60% Complete
 
 ---
 
@@ -254,22 +255,34 @@ git push
 
 ## 🎯 IMMEDIATE NEXT STEPS
 
-### Step 1: Admin Panel MVP (Per Session 11 Handoff)
-Build these components:
-- AdminDashboard.tsx
-- UserManagement.tsx
-- ProgramManagement.tsx
+### Step 1: Complete Data Seeding (PRIORITY)
+Admin Panel MVP is COMPLETE and working. Now seed the full data:
 
-Reference: ADMIN_PANEL_MASTER_PLAN_ADDITION.md, Phase A
+**⚠️ CRITICAL: Verify Data Match**
+The 32 seeded programs may not exactly match the live database extract.
+Compare `apps/backend/prisma/seed.ts` against `docs/prompt3_program_content_COMPLETE.json`
+and UPDATE or RESEED to match live data exactly.
 
-### Step 2: Seed Program Data
-Import 49 programs from extracted JSON:
-- Create programs with categories
-- Create 207 weeks with proper ordering
-- Create 933 steps with activity type codes
-- Map Vimeo IDs to video steps
+**Current State:**
+- ✅ 32 programs seeded (but may not match live data exactly)
+- ⚠️ All programs show "0 WEEKS" 
+- ⚠️ No steps seeded
+- ⚠️ Verify seeded programs match live data in `prompt3_program_content_COMPLETE.json`
 
-### Step 3: Program Navigation UI
+**Live Data Contains:**
+- 49 programs with specific codes (IYCTHINDI, IY10HINDI, STFME, IYCTHUB, etc.)
+- 207 weeks with proper ordering
+- 933 steps with activity codes and Vimeo IDs
+
+**Need to Add:**
+- 17 more programs (32 → 49 total)
+- 207 weeks with proper ordering
+- 933 steps with activity type codes
+- Vimeo IDs for video steps
+
+Source: `docs/prompt3_program_content_COMPLETE.json`
+
+### Step 2: Program Navigation UI
 Match PHP system exactly:
 - Program list with category filters
 - Week navigation with lock/unlock status
@@ -277,7 +290,7 @@ Match PHP system exactly:
 - Vimeo video player embed
 - Activity triggers based on type code
 
-### Step 4: Practice Tools Landing
+### Step 3: Practice Tools Landing
 Create the 6-tool carousel page:
 - Inner DNA Test card
 - Wheel of Life card
@@ -316,7 +329,7 @@ Using INNER_DNA_SYSTEM_ADDITION.md as reference:
 │   │   ├── pages/
 │   │   │   ├── dashboard/DashboardPage.tsx  ✅
 │   │   │   ├── programs/ProgramDetailPage.tsx  ✅
-│   │   │   └── admin/  🔲 TO BUILD
+│   │   │   └── admin/  ✅ WORKING
 │   │   └── App.tsx  ✅
 │   └── backend/src/
 │       ├── routes/admin.routes.ts  ✅
@@ -327,7 +340,8 @@ Using INNER_DNA_SYSTEM_ADDITION.md as reference:
 │   ├── prompt3_program_content_COMPLETE.json
 │   ├── inner_dna_complete_system.json
 │   ├── COMPLETE_INNER_DNA_EXPORT.md  ⭐ NEW
-│   └── MULTI_LANGUAGE_AND_AI_COMPLETE.md  ⭐ NEW
+│   ├── MULTI_LANGUAGE_AND_AI_COMPLETE.md  ⭐ NEW
+│   └── MISSING_ITEMS_FOR_CLAUDE.md  ⭐ NEW (36 RHETI questions, 45 state descriptions)
 └── [Project Knowledge in Claude Project]
     ├── EXECUTIVE_SUMMARY.md
     ├── PROJECT_MASTER_PLAN.md
@@ -383,14 +397,15 @@ Using INNER_DNA_SYSTEM_ADDITION.md as reference:
 8. ✅ Documented 4-phase chat coaching service
 9. ✅ Created comprehensive handoff with ALL data integrated
 10. ✅ Clarified design system takes precedence over any imported styles
+11. ✅ Confirmed Admin Panel MVP is WORKING (32 programs displaying)
 
 ---
 
 **NEW ASSISTANT INSTRUCTIONS:**
 
 1. **Read ALL master plan documents** before making any changes
-2. **Build Admin Panel MVP first** (per Session 11 handoff)
-3. **Then seed 49 programs** from extracted JSON
+2. **Admin Panel MVP is DONE** - Focus on data seeding next
+3. **Seed full data:** 17 more programs + 207 weeks + 933 steps from `prompt3_program_content_COMPLETE.json`
 4. **Use IYCT dark theme** for ALL UI components
 5. **Reference INNER_DNA_SYSTEM_ADDITION.md** when building Inner DNA features
 6. **Maintain PHP functionality parity** - users should recognize the system
