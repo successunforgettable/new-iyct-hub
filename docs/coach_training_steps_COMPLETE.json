@@ -1,0 +1,121 @@
+{
+  "program": {
+    "name": "Coach Training Foundation (CTF)",
+    "code": "CTF",
+    "source_database": "worldsuc_aku",
+    "source_table": "cc_coach_step_info",
+    "exported": "2025-12-05"
+  },
+  "weeks": [
+    {
+      "week_number": 0,
+      "title": "Get Started",
+      "manual": null,
+      "steps": [
+        {"step": 1, "name": "What Coaching Really Is", "link": "coach/week/get_started"},
+        {"step": 2, "name": "What Is Your Vision And Mission?", "link": "coach/week/get_started"},
+        {"step": 3, "name": "The Power Of Imagination", "link": "coach/week/get_started"}
+      ]
+    },
+    {
+      "week_number": 1,
+      "title": "Week One",
+      "manual": "Week_1.pdf",
+      "steps": [
+        {"step": 1, "name": "Who Are You", "link": "coach/week/one"},
+        {"step": 2, "name": "The Welcome Session", "link": "coach/week/one"},
+        {"step": 3, "name": "The Welcome Session Debrief & The Personality Assessment Debrief", "link": "coach/week/one"},
+        {"step": 4, "name": "The Wheel Of Life", "link": "coach/week/one"},
+        {"step": 5, "name": "The Wheel Of Life Debrief & Inner DNA", "link": "coach/week/one"},
+        {"step": 6, "name": "The Speech", "link": "coach/week/one"},
+        {"step": 7, "name": "The Speech Debrief", "link": "coach/week/one"},
+        {"step": 8, "name": "Discover Your Baselines", "link": "coach/week/one"},
+        {"step": 9, "name": "Discover Your Baselines Debrief", "link": "coach/week/one"},
+        {"step": 10, "name": "Baselines Expression", "link": "coach/week/one"},
+        {"step": 11, "name": "Baselines Expression Debrief & New Activity", "link": "coach/week/one"},
+        {"step": 12, "name": "Baselines Non-Expression Debrief & The Change", "link": "coach/week/one"},
+        {"step": 13, "name": "The Change", "link": "coach/week/one"}
+      ]
+    },
+    {
+      "week_number": 2,
+      "title": "Week Two",
+      "manual": "Week_2.pdf",
+      "steps": [
+        {"step": 1, "name": "Introduction To Integrated Power Coding", "link": "coach/week/two"},
+        {"step": 2, "name": "The N - Codes And The E - Codes", "link": "coach/week/two"},
+        {"step": 3, "name": "Letting Go And Holding On Activity", "link": "coach/week/two"},
+        {"step": 4, "name": "Letting Go And Holding On Debrief (Part 1)", "link": "coach/week/two"},
+        {"step": 5, "name": "Letting Go And Holding On Debrief (Part 2)", "link": "coach/week/two"},
+        {"step": 6, "name": "Letting Go And Holding On (Let's Sum It Up)", "link": "coach/week/two"},
+        {"step": 7, "name": "The Coding", "link": "coach/week/two"},
+        {"step": 8, "name": "The Coding Debrief", "link": "coach/week/two"},
+        {"step": 9, "name": "Your E - Codes", "link": "coach/week/two"},
+        {"step": 10, "name": "Your E - Codes Debrief", "link": "coach/week/two"},
+        {"step": 11, "name": "The Stories", "link": "coach/week/two"},
+        {"step": 12, "name": "The Stories Debrief", "link": "coach/week/two"}
+      ]
+    },
+    {
+      "week_number": 3,
+      "title": "Week Three",
+      "manual": "Week_3.pdf",
+      "steps": [
+        {"step": 1, "name": "Outcomes", "link": "coach/week/three"},
+        {"step": 2, "name": "My Outcomes", "link": "coach/week/three"},
+        {"step": 3, "name": "Define My Outcomes", "link": "coach/week/three"},
+        {"step": 4, "name": "INCRED Outcomes", "link": "coach/week/three"},
+        {"step": 5, "name": "INCRED Process Debrief", "link": "coach/week/three"},
+        {"step": 6, "name": "Challenges, Power Leaps", "link": "coach/week/three"}
+      ]
+    },
+    {
+      "week_number": 4,
+      "title": "Week Four",
+      "manual": "Week_4.pdf",
+      "steps": [
+        {"step": 1, "name": "Introduction To Decision Making", "link": "coach/week/four"},
+        {"step": 2, "name": "Unleash You", "link": "coach/week/four"},
+        {"step": 3, "name": "My Past Decisions Debrief & Decision Making Wheel", "link": "coach/week/four"},
+        {"step": 4, "name": "Make The Real Decision", "link": "coach/week/four"},
+        {"step": 5, "name": "The Buzz Moments", "link": "coach/week/four"},
+        {"step": 6, "name": "The Mastermind Circle", "link": "coach/week/four"},
+        {"step": 7, "name": "The Summary", "link": "coach/week/four"}
+      ]
+    },
+    {
+      "week_number": 5,
+      "title": "Week Five",
+      "manual": "Week_5.pdf",
+      "steps": [
+        {"step": 1, "name": "The Success Blueprint", "link": "coach/week/five"},
+        {"step": 2, "name": "Crazy Dreams", "link": "coach/week/five"},
+        {"step": 3, "name": "The Vision Board", "link": "coach/week/five"},
+        {"step": 4, "name": "The Vision Board Debrief", "link": "coach/week/five"},
+        {"step": 5, "name": "Crafting Your Success Blueprint", "link": "coach/week/five"},
+        {"step": 6, "name": "The Beginning Of The Journey", "link": "coach/week/five"}
+      ]
+    },
+    {
+      "week_number": 6,
+      "title": "Certification",
+      "manual": null,
+      "steps": [
+        {"step": 1, "name": "Certification", "link": "coach/certification"}
+      ]
+    }
+  ],
+  "summary": {
+    "total_weeks": 7,
+    "total_steps": 48,
+    "weeks_breakdown": {
+      "week_0_get_started": 3,
+      "week_1": 13,
+      "week_2": 12,
+      "week_3": 6,
+      "week_4": 7,
+      "week_5": 6,
+      "week_6_certification": 1
+    }
+  }
+}

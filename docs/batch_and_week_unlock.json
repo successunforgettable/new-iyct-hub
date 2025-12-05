@@ -1,0 +1,324 @@
+{
+  "export_info": {
+    "extracted_from": "CI4 Codebase (app/Models, app/Controllers, app/Views)",
+    "extraction_date": "2025-12-05",
+    "source": "innerdna.com - Developer's AWS Server",
+    "status": "COMPLETE - All batch and week unlock logic extracted"
+  },
+
+  "batch_system": {
+    "enabled": true,
+    "database_table": "prg_batch_management",
+    "batch_fields": [
+      "id",
+      "program_id",
+      "btc_srno",
+      "btc_batch_name",
+      "btc_lockstatus",
+      "btc_remark",
+      "btc_date",
+      "btc_capacity",
+      "btc_status"
+    ],
+    "field_descriptions": {
+      "id": "Primary key",
+      "program_id": "Foreign key to prg_master",
+      "btc_srno": "Batch serial number",
+      "btc_batch_name": "Name of the batch (e.g., 'Batch 1', 'January 2024')",
+      "btc_lockstatus": "1 = Live (open), 0 = Locked",
+      "btc_remark": "Optional notes about the batch",
+      "btc_date": "Batch start date",
+      "btc_capacity": "Maximum number of participants",
+      "btc_status": "1 = Active, 0 = Inactive"
+    },
+    "admin_functions": [
+      {
+        "route": "superadmin/program/batch_management/{program_id}",
+        "description": "List all batches for a program"
+      },
+      {
+        "route": "superadmin/program/add_batch_management/{program_id}/{batch_id?}",
+        "description": "Add or edit batch"
+      },
+      {
+        "route": "superadmin/program/batch_wise_user_manage/{batch_id}",
+        "description": "Manage users in a batch"
+      }
+    ],
+    "user_batch_assignment": {
+      "table": "cc_program_access",
+      "field": "batch_id",
+      "description": "Users are assigned to a batch upon enrollment"
+    },
+    "live_batch_selection": {
+      "logic": "Auto-selects first batch with btc_lockstatus = 1 (Live) and btc_status = 1 (Active)",
+      "function": "get_live_batch($program_id, $demo_status, $parent_prg_id)"
+    }
+  },
+
+  "week_unlock": {
+    "method": "payment_based + completion_based + manual",
+    "description": "Hybrid system combining payment installments, step completion, and manual admin controls",
+    
+    "database_tables": {
+      "week_management": {
+        "table": "prg_week_management",
+        "fields": [
+          "id",
+          "program_id",
+          "we_weekno",
+          "we_weekno_text",
+          "we_weektitle",
+          "we_no_ofstep",
+          "we_manual",
+          "we_start_message",
+          "we_end_message",
+          "we_certification_vdo",
+          "status",
+          "we_type"
+        ],
+        "key_fields": {
+          "we_weekno": "Week number (0 = Get Started, 1-7 = regular weeks)",
+          "we_weekno_text": "Display text (e.g., 'Week One')",
+          "we_no_ofstep": "Number of steps in this week",
+          "we_type": "'free' or 'paid' - determines unlock behavior"
+        }
+      },
+      "week_access": {
+        "table": "cc_week_access",
+        "fields": [
+          "id",
+          "user_id",
+          "batch_id",
+          "client_id",
+          "program_id",
+          "week",
+          "status",
+          "start_time",
+          "end_time",
+          "week_access"
+        ],
+        "key_fields": {
+          "week": "Week number",
+          "status": "0 = Not started, 1 = In progress, 2 = Completed",
+          "week_access": "0 = Locked, 1 = Unlocked"
+        }
+      },
+      "installment_mst": {
+        "table": "prg_installment_mst",
+        "fields": [
+          "id",
+          "install_no",
+          "program_id",
+          "title",
+          "fees_amt",
+          "access_title",
+          "status",
+          "fees_id",
+          "plan_id",
+          "open_week",
+          "due_days",
+          "total_inst"
+        ],
+        "key_fields": {
+          "install_no": "Installment number (1, 2, 3, etc.)",
+          "open_week": "Comma-separated list of weeks to unlock (e.g., '1,2,3')",
+          "due_days": "Days after enrollment when installment is due",
+          "total_inst": "Total number of installments in the plan"
+        }
+      }
+    },
+
+    "unlock_methods": {
+      "payment_based": {
+        "description": "Weeks unlock when corresponding installment is paid",
+        "trigger": "Successful payment",
+        "logic": "open_week field in prg_installment_mst determines which weeks unlock",
+        "full_payment": "All weeks unlocked immediately",
+        "installment_payment": "Weeks unlock based on installment's open_week config"
+      },
+      "completion_based": {
+        "description": "Next week unlocks when all steps in current week are completed",
+        "trigger": "User marks final step of week as complete",
+        "logic": [
+          "1. User completes final step in week N",
+          "2. cc_week_access status for week N set to 2 (Completed)",
+          "3. Week N+1 status set to 1 (In progress)",
+          "4. If we_type = 'paid', week_access stays 0 until payment",
+          "5. If we_type = 'free', week_access set to 1 automatically"
+        ],
+        "function": "next_step_complete($pid, $week, $step, $login_user_id)"
+      },
+      "manual": {
+        "description": "Admin can manually lock/unlock weeks for specific users",
+        "admin_routes": [
+          "admin/Coach_Mangement/bulk_week_unlock",
+          "admin/Coach_Mangement/unlock_week"
+        ],
+        "function": "week_validation() - bulk lock/unlock by batch and week"
+      }
+    },
+
+    "initial_week_setup": {
+      "trigger": "User enrolls in program (after payment)",
+      "logic": [
+        "1. Create cc_week_access records for all weeks (start_week to total_week)",
+        "2. First week (pr_start_week): status = 1, week_access = 1",
+        "3. Subsequent weeks: status = 0, week_access = 0",
+        "4. If full payment: all weeks set to week_access = 1"
+      ],
+      "code_location": "Payment.php lines 967-986"
+    },
+
+    "schedule": [
+      {
+        "week": 0,
+        "name": "Get Started",
+        "unlock_rule": "immediate",
+        "description": "Pre-study content, always unlocked on enrollment"
+      },
+      {
+        "week": 1,
+        "name": "Week One",
+        "unlock_rule": "payment_based",
+        "description": "Unlocked with first installment or full payment"
+      },
+      {
+        "week": 2,
+        "name": "Week Two",
+        "unlock_rule": "completion_based + payment_based",
+        "description": "Unlocks when Week 1 completed AND installment paid"
+      },
+      {
+        "week": 3,
+        "name": "Week Three",
+        "unlock_rule": "completion_based + payment_based",
+        "description": "Unlocks when Week 2 completed AND installment paid"
+      },
+      {
+        "week": 4,
+        "name": "Week Four",
+        "unlock_rule": "completion_based + payment_based",
+        "description": "Unlocks when Week 3 completed AND installment paid"
+      },
+      {
+        "week": 5,
+        "name": "Week Five",
+        "unlock_rule": "completion_based + payment_based",
+        "description": "Unlocks when Week 4 completed AND installment paid"
+      },
+      {
+        "week": 6,
+        "name": "Week Six",
+        "unlock_rule": "completion_based + payment_based",
+        "description": "Unlocks when Week 5 completed AND installment paid"
+      },
+      {
+        "week": 7,
+        "name": "Certification",
+        "unlock_rule": "completion_based",
+        "description": "Unlocks when Week 6 completed, triggers certificate issuance"
+      }
+    ]
+  },
+
+  "step_tracking": {
+    "database_table": "cc_steps",
+    "fields": [
+      "id",
+      "user_id",
+      "batch_id",
+      "program_id",
+      "week",
+      "step",
+      "status",
+      "mark_complete",
+      "start_time",
+      "end_time"
+    ],
+    "status_values": {
+      "0": "Not started / Locked",
+      "1": "In progress",
+      "2": "Completed"
+    },
+    "step_completion_flow": [
+      "1. User clicks 'Complete' on step N",
+      "2. Step N: status = 2, mark_complete = 1",
+      "3. If N < total_steps_in_week: Step N+1 created with status = 0",
+      "4. If N = total_steps_in_week: Next week's first step created"
+    ]
+  },
+
+  "certificate_issuance": {
+    "trigger": "Final week completed (week = pr_total_week)",
+    "conditions": [
+      "pr_prestudy_status = 1 (Has pre-study)",
+      "OR certification_step = 0 (No certification step required)"
+    ],
+    "fields_updated": {
+      "cc_program_access.certificate_srno": "Auto-incremented certificate number",
+      "cc_program_access.certificate_status": "1 (Issued)",
+      "cc_program_access.status": "'Completed'"
+    },
+    "function": "issue_certificate($pid, $usid, $demostatus)"
+  },
+
+  "admin_controls": {
+    "bulk_unlock": {
+      "route": "admin/Coach_Mangement/bulk_week_unlock",
+      "description": "Unlock weeks for multiple users in a batch",
+      "parameters": ["program", "batch", "week", "user list"]
+    },
+    "bulk_lock": {
+      "route": "admin/Coach_Mangement/bulk_week_lock",
+      "description": "Lock weeks for multiple users in a batch"
+    },
+    "individual_unlock": {
+      "route": "admin/Coach_Mangement/unlock_week",
+      "description": "Unlock specific week for a single user",
+      "parameters": ["userid", "week", "progid"]
+    },
+    "view_status": {
+      "route": "admin/Coach_Mangement/user_week_status/{user_id}/{program_id}",
+      "description": "View week and step completion status for a user"
+    }
+  },
+
+  "client_batch_system": {
+    "description": "Coaches can create their own batches for their clients",
+    "table": "cc_client_batch",
+    "fields": [
+      "id",
+      "user_id",
+      "program_id",
+      "batch_name",
+      "status"
+    ],
+    "usage": "Coaches run programs TO their clients with separate batch tracking"
+  },
+
+  "react_implementation_notes": {
+    "components_needed": [
+      "WeekCard - Display week with lock/unlock status",
+      "ProgressTracker - Show overall program progress",
+      "StepList - List steps within a week",
+      "LockOverlay - Visual lock indicator for unpaid weeks",
+      "PaymentGate - Redirect to payment when accessing locked week"
+    ],
+    "state_management": [
+      "Store user's week_access array from cc_week_access",
+      "Track current step in progress",
+      "Calculate progress percentage"
+    ],
+    "api_endpoints_needed": [
+      "GET /api/programs/:programId/weeks - Get all weeks with access status",
+      "POST /api/steps/:stepId/complete - Mark step as complete",
+      "GET /api/users/:userId/progress - Get user's overall progress"
+    ],
+    "unlock_logic": {
+      "check": "week_access = 1 AND status >= 1",
+      "if_locked": "Show payment prompt or completion requirement",
+      "if_unlocked": "Allow navigation to week content"
+    }
+  }
+}

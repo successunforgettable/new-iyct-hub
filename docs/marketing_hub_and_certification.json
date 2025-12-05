@@ -1,0 +1,266 @@
+{
+  "export_info": {
+    "extracted_from": "CI4 Codebase (app/Models, app/Controllers, app/Views)",
+    "extraction_date": "2025-12-05",
+    "source": "innerdna.com - Developer's AWS Server",
+    "status": "COMPLETE - Marketing Hub and Certification system extracted"
+  },
+
+  "marketing_hub": {
+    "description": "Referral and share link system for coaches to acquire clients",
+    "enabled": true,
+    
+    "share_links": {
+      "format": "{base_url}/{marketing_prg_reg_link}/{user_id}",
+      "example": "https://innerdna.com/program/payment/upload_registration/21/147516881",
+      "personality_test_format": "{base_url}/program/personality_test/register/{program_id}/{user_id}",
+      "big_personality_format": "{base_url}/program/big_personality_assessment/register/{program_id}/{user_id}",
+      "tracking_field": "parent_user_id",
+      "tracking_description": "When a client registers via share link, their parent_user_id is set to the coach's user_id"
+    },
+
+    "share_limits": {
+      "program_shares": {
+        "field": "market_share_count",
+        "table": "prg_master",
+        "description": "Maximum number of program share slots per coach",
+        "default_value": "Program-specific, varies by program"
+      },
+      "personality_test_shares": {
+        "field": "personality_count",
+        "table": "cc_coach",
+        "description": "Number of Inner DNA personality test links coach can share",
+        "default_value": "Assigned per coach"
+      },
+      "big_personality_shares": {
+        "field": "big_personality_count",
+        "table": "cc_coach",
+        "description": "Number of Big Personality assessment links coach can share",
+        "default_value": "Assigned per coach"
+      }
+    },
+
+    "shares_calculation": {
+      "formula": "market_share_count - COUNT(cc_program_access WHERE parent_user_id = user_id)",
+      "description": "Remaining shares = Total allowed - Clients already registered via this coach's link"
+    },
+
+    "referral_tracking": {
+      "primary_table": "cc_program_access",
+      "tracking_field": "parent_user_id",
+      "tracking_description": "Foreign key to cc_coach.user_id of referring coach",
+      "client_counts_table": "cc_program_access",
+      "personality_tracking_table": "cc_personality_test_register",
+      "fields": {
+        "program_id": "Which program client enrolled in",
+        "user_id": "Client's user ID",
+        "parent_user_id": "Referring coach's user ID",
+        "batch_id": "Batch assignment",
+        "marketing_cnt": "Marketing counter"
+      }
+    },
+
+    "commission_system": {
+      "enabled": false,
+      "commission_percent": null,
+      "notes": "No commission percentage found in codebase - referral tracking is for client relationship management, not financial commissions"
+    },
+
+    "share_channels": [
+      {
+        "type": "copy_link",
+        "description": "Copy referral URL to clipboard"
+      },
+      {
+        "type": "whatsapp",
+        "url_format": "https://api.whatsapp.com/send?text={share_url}"
+      },
+      {
+        "type": "facebook",
+        "url_format": "https://www.facebook.com/sharer.php?u={share_url}"
+      },
+      {
+        "type": "email",
+        "url_format": "mailto:?subject=The Incredible You program registration link&body={share_url}"
+      }
+    ],
+
+    "database_tables": {
+      "prg_marketing_hub": {
+        "description": "Marketing hub configuration per program",
+        "fields": ["id", "program_id", "hub_link", "report_btn", "share_btn", "heading", "description", "notes", "image"]
+      },
+      "prg_marketing_mst": {
+        "description": "Marketing content master - categories",
+        "fields": ["id", "treas_id", "parent_id", "title", "description", "language", "btn_text", "btn_url", "parent", "status", "image", "file_type", "personality_limit", "program_id"]
+      },
+      "prg_marketing_sub": {
+        "description": "Marketing content items",
+        "fields": ["id", "mst_id", "title", "description", "article_by", "article_date", "res_option", "pdf_doc_id", "images", "video", "video_thumb", "btn_one_text", "btn_one_url", "btn_one_opt", "btn_two_text", "btn_two_url", "btn_two_opt", "share_btn", "status"]
+      }
+    },
+
+    "button_options": {
+      "btn_one_opt / btn_two_opt": {
+        "1": "Copy link action",
+        "2": "Download file action",
+        "3": "Open URL in new tab"
+      }
+    }
+  },
+
+  "certification": {
+    "description": "Video-based certification system for coach training programs",
+    "video_required": true,
+    
+    "video_requirements": {
+      "duration_field": "crtf_video_duration",
+      "table": "prg_certification_video",
+      "min_duration_minutes": "Configurable per certification video task",
+      "default_duration": "Set by admin per video assignment"
+    },
+
+    "approval_workflow": {
+      "statuses": {
+        "1": "pending",
+        "2": "approved",
+        "3": "rejected"
+      },
+      "status_descriptions": {
+        "pending": "Video uploaded, awaiting admin review",
+        "approved": "Video approved by admin",
+        "rejected": "Video rejected, coach must re-upload"
+      }
+    },
+
+    "certificate_issuance": {
+      "trigger": "All certification videos approved (status = 2)",
+      "condition": "COUNT(approved_videos) = COUNT(required_videos)",
+      "actions_on_completion": [
+        "Mark final certification step complete",
+        "Update cc_program_access.status = 'Completed'",
+        "Issue certificate (set certificate_status = 1, certificate_srno)",
+        "Optionally unlock next program tier (paid_prg_id)"
+      ]
+    },
+
+    "certificate_template": {
+      "table": "prg_certificate_design",
+      "fields": {
+        "program_id": "Which program this design is for",
+        "heading": "Certificate heading text",
+        "description": "Certificate body text",
+        "logo": "Logo image path",
+        "sing_img": "Signature image (center)",
+        "sing_img_left": "Left signature image",
+        "sing_img_right": "Right signature image",
+        "back_img": "Background image path",
+        "notes": "Additional notes"
+      },
+      "default_background": "https://arfeenkhanuniversity.com/programs/assets/certificate_new/bg.png",
+      "fonts": ["CircularStd-Black", "CircularStd-Book", "CircularStdBold", "Auto", "times", "extrabold"]
+    },
+
+    "generated_certificates": {
+      "table": "cc_generate_certificate",
+      "fields": {
+        "program_id": "Program ID",
+        "user_id": "Coach user ID",
+        "name": "Certificate holder name",
+        "email_id": "Email address",
+        "cert_date": "Certificate issue date",
+        "coursename": "Course/Program name",
+        "create_status": "Creation status",
+        "retrieved_status": "Download/retrieval status",
+        "certicate_link": "Generated certificate URL"
+      }
+    },
+
+    "database_tables": {
+      "prg_coach_certificate": {
+        "description": "Certification video assignments per program",
+        "fields": ["id", "program_id", "batch_id", "week", "steps", "video_id", "video_thumbnail", "sr_no", "title", "description", "display_type", "old_id"]
+      },
+      "prg_certification_video": {
+        "description": "Certification video requirements",
+        "fields": ["id", "program_id", "crti_sr_no", "week_id", "crtf_description", "crtf_heading", "crtf_video_duration", "crtf_status", "step_id"]
+      },
+      "cc_coach_certification_videos": {
+        "description": "User's uploaded certification videos",
+        "fields": ["id", "user_id", "mid", "video_url", "video_thumbnail", "status", "active", "remarks", "created_on"]
+      },
+      "prg_certificate_design": {
+        "description": "Certificate template designs",
+        "fields": ["id", "program_id", "heading", "description", "logo", "sing_img", "sing_img_left", "sing_img_right", "back_img", "notes"]
+      },
+      "cc_generate_certificate": {
+        "description": "Generated certificates for users",
+        "fields": ["id", "program_id", "user_id", "name", "email_id", "cert_date", "coursename", "create_status", "retrieved_status", "certicate_link"]
+      }
+    },
+
+    "batch_certification_type": {
+      "field": "certificaton_type",
+      "table": "prg_batch_management",
+      "description": "Certification type varies by batch (e.g., 'week' based)",
+      "used_for": "Filtering which certification videos to approve based on batch assignment"
+    },
+
+    "mcq_quiz": {
+      "enabled": true,
+      "description": "Multiple choice quiz as part of certification",
+      "tables": {
+        "prg_coach_mcq": "Quiz questions per program",
+        "prg_coach_mcq_options": "Answer options per question",
+        "cc_coach_mcq_ans": "User's quiz answers"
+      },
+      "passing_requirement": "100% correct answers (all questions must be correct)",
+      "retry_allowed": true
+    },
+
+    "admin_routes": {
+      "video_list": "admin/Certification/coach_certfication_video_list/{program_id}",
+      "video_approval": "admin/Certification/video_approve_reject",
+      "user_videos": "admin/Certification/coach_certfication_video_page/{user_id}/{program_id}",
+      "approve_all": "admin/Certification/approve_all_videos/{user_id}/{program_id}",
+      "update_remarks": "admin/Certification/updateVideoRemarks"
+    },
+
+    "user_routes": {
+      "mcq_quiz": "program/Certification/mcq/{program_id}",
+      "upload_videos": "program/Certification/uploadvideos/{program_id}",
+      "view_certificate": "program/certification"
+    }
+  },
+
+  "react_implementation_notes": {
+    "marketing_hub_components": [
+      "ShareCard - Display share link with remaining count",
+      "ShareButton - WhatsApp/Facebook/Email/Copy actions",
+      "ClientList - View clients acquired via referral",
+      "ShareCounter - Visual display of shares remaining"
+    ],
+    "certification_components": [
+      "VideoUploadCard - Upload certification video with progress",
+      "VideoStatusBadge - pending/approved/rejected indicator",
+      "CertificateViewer - Display generated certificate",
+      "MCQQuiz - Interactive quiz component",
+      "ProgressTracker - Certification completion percentage"
+    ],
+    "api_endpoints_needed": {
+      "marketing": [
+        "GET /api/marketing/share-links - Get coach's share links with remaining counts",
+        "GET /api/marketing/clients - Get clients acquired via referral",
+        "POST /api/marketing/track-share - Track when share link is used"
+      ],
+      "certification": [
+        "GET /api/certification/videos - Get required videos and upload status",
+        "POST /api/certification/upload - Upload certification video",
+        "GET /api/certification/status - Get overall certification progress",
+        "GET /api/certification/certificate - Get generated certificate",
+        "GET /api/certification/mcq - Get quiz questions",
+        "POST /api/certification/mcq/submit - Submit quiz answers"
+      ]
+    }
+  }
+}

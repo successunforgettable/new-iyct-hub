@@ -1,0 +1,115 @@
+{
+  "extraction_date": "2025-12-05",
+  "source": "AWS EC2 (54.164.162.175) + PHP View Files",
+  "status": "PARTIAL - Full video IDs require CI4 database access (prg_steps_management.stp_videoid)",
+  
+  "from_cc_all_steps_table": {
+    "database": "worldsuc_aku",
+    "table": "cc_all_steps",
+    "videos": [
+      {"week": 1, "step": 2, "title": "The Speech", "vimeo_id": "333274438"},
+      {"week": 1, "step": 3, "title": "The Welcome Session Debrief & The Personality Assessment Debrief", "vimeo_id": "343427194"},
+      {"week": 1, "step": 4, "title": "Outcomes", "vimeo_id": "336000413"}
+    ]
+  },
+
+  "from_php_view_files": {
+    "source": "app/Views/program/*.php",
+    "videos_by_context": {
+      "program_intro_background": [
+        {"id": "742232244", "file": "index.php", "usage": "Program card background loop video"}
+      ],
+      "tutorial_walkthrough": [
+        {"id": "742667999", "file": "tutorial_walktrough.php", "usage": "Hub tutorial video"},
+        {"id": "742668338", "file": "hub_welcome.php", "usage": "Welcome tutorial"}
+      ],
+      "get_started": [
+        {"id": "742273154", "file": "get_started.php", "usage": "Get Started step video"}
+      ],
+      "week_steps": [
+        {"id": "743074376", "file": "week1.php", "usage": "Week 1 step video"},
+        {"id": "742263389", "file": "certification_step.php", "usage": "Week step video"}
+      ],
+      "certification_videos": [
+        {"id": "742213307", "file": "certification_step.php", "usage": "Certification step 1"},
+        {"id": "742213518", "file": "certification_step.php", "usage": "Certification step 2"},
+        {"id": "742213653", "file": "certification_step.php", "usage": "Certification step 3"},
+        {"id": "742213817", "file": "certification_step.php", "usage": "Certification step 4"},
+        {"id": "742213932", "file": "certification_step.php", "usage": "Certification step 5"},
+        {"id": "742214131", "file": "certification_step.php", "usage": "Certification step 6"},
+        {"id": "742214448", "file": "certification_step.php", "usage": "Certification step 7"},
+        {"id": "742214697", "file": "certification_step.php", "usage": "Certification step 8"},
+        {"id": "742214926", "file": "certification_step.php", "usage": "Certification step 9"}
+      ],
+      "toclient_week_videos": [
+        {"id": "742194439", "file": "toclientweek.php", "usage": "Client coaching video"},
+        {"id": "742194482", "file": "toclientweek.php", "usage": "Client coaching video"},
+        {"id": "742194543", "file": "toclientweek.php", "usage": "Client coaching video"},
+        {"id": "742194592", "file": "toclientweek.php", "usage": "Client coaching video"},
+        {"id": "742194681", "file": "toclientweek.php", "usage": "Client coaching video"},
+        {"id": "742194750", "file": "toclientweek.php", "usage": "Client coaching video"},
+        {"id": "742667716", "file": "toclientweek.php", "usage": "Client coaching video"}
+      ],
+      "articles_books_success": [
+        {"id": "742664848", "file": "articles.php/books.php/success_stories.php", "usage": "Content section video"}
+      ],
+      "personality_assessment": [
+        {"id": "743401977", "file": "big_english_personality_register.php", "usage": "Personality registration video"}
+      ],
+      "speak_to_fortune": [
+        {"id": "388213439", "file": "stfindex.php", "usage": "STF intro video"}
+      ],
+      "legacy": [
+        {"id": "76979871", "file": "videos.php", "usage": "Legacy/old video"}
+      ]
+    }
+  },
+
+  "all_unique_vimeo_ids": [
+    "76979871",
+    "333274438",
+    "336000413",
+    "343427194",
+    "388213439",
+    "742194439",
+    "742194482",
+    "742194543",
+    "742194592",
+    "742194681",
+    "742194750",
+    "742213307",
+    "742213518",
+    "742213653",
+    "742213817",
+    "742213932",
+    "742214131",
+    "742214448",
+    "742214697",
+    "742214926",
+    "742232244",
+    "742263389",
+    "742273154",
+    "742664848",
+    "742667716",
+    "742667999",
+    "742668338",
+    "743074376",
+    "743401977"
+  ],
+
+  "total_unique_videos": 29,
+
+  "missing_data": {
+    "description": "Full step-to-video mapping requires access to CI4 database",
+    "required_table": "prg_steps_management",
+    "required_column": "stp_videoid",
+    "note": "This table is NOT on EC2 server 54.164.162.175 - CI4 app hosted elsewhere"
+  },
+
+  "next_steps_to_get_full_video_mapping": [
+    "1. Find CI4 database location (different server than 54.164.162.175)",
+    "2. Check if there's a phpMyAdmin or database panel in CI4 admin",
+    "3. Export prg_steps_management table with stp_videoid column",
+    "4. Or extract video IDs by visiting live site and inspecting network requests"
+  ]
+}

@@ -1,0 +1,407 @@
+{
+  "export_info": {
+    "extracted_from": "CI4 Codebase (app/Models, app/Controllers, app/Views)",
+    "extraction_date": "2025-12-05",
+    "source": "innerdna.com - Developer's AWS Server",
+    "status": "COMPLETE - All tool structures and database schemas extracted",
+    "note": "Tool content data requires developer database access - see AWS_DATABASE_ACCESS_GUIDE.md"
+  },
+  
+  "practice_tools": {
+    "total_tools": 10,
+    "tools": [
+      {
+        "id": 1,
+        "name": "Wheel of Life",
+        "description": "Visual life balance assessment across 8 life areas with ratings 1-10",
+        "controller": "app/Controllers/Program/Wheeloflifes.php",
+        "views": ["program/wheeloflife/wheeloflife.php", "program/design/wheel_of_life.php"],
+        "database_tables": {
+          "questions": {
+            "table": "prg_wheel_of_life",
+            "fields": ["id", "language", "sr_no", "question", "bg_color", "status", "seq_no", "created_date", "updated_date"]
+          },
+          "user_reports": {
+            "table": "cc_wheeloflife_report",
+            "fields": ["id", "program_id", "user_id", "comp_id", "component", "type", "created_date"]
+          },
+          "demo_activity_count": {
+            "table": "cc_demo_activity_count",
+            "fields": ["id", "program_id", "activity_id", "user_id", "type", "count", "status", "create_at"]
+          }
+        },
+        "components": [
+          {"sr_no": 1, "name": "Family & Friends", "color": "#FF6B6B"},
+          {"sr_no": 2, "name": "Romance & Love", "color": "#4ECDC4"},
+          {"sr_no": 3, "name": "Fun & Recreation", "color": "#45B7D1"},
+          {"sr_no": 4, "name": "Health & Fitness", "color": "#96CEB4"},
+          {"sr_no": 5, "name": "Money & Wealth", "color": "#FFEAA7"},
+          {"sr_no": 6, "name": "Physical Environment", "color": "#DDA0DD"},
+          {"sr_no": 7, "name": "Career & Business", "color": "#F39C12"},
+          {"sr_no": 8, "name": "Personal Growth", "color": "#9B59B6"}
+        ],
+        "types": {
+          "1": "Program Activity (mandatory completion)",
+          "2": "Demo/Practice Mode",
+          "3": "Coach Practice Tool"
+        },
+        "visualization": "Polar/Radar chart with colored segments",
+        "multi_language": true,
+        "languages": ["English (2)", "Hindi (1)"]
+      },
+      
+      {
+        "id": 2,
+        "name": "Baselines / Word Selection",
+        "description": "Identify limiting beliefs through word selection exercise with multiple levels",
+        "controller": "app/Controllers/Program/Baselines.php",
+        "views": ["program/baselines/index.php", "program/inner_dna/baseline.php"],
+        "database_tables": {
+          "words_master": {
+            "table": "prg_baselines_word_selection",
+            "fields": ["id", "language", "word", "meaning", "group_id", "status"]
+          },
+          "user_reports": {
+            "table": "cc_baselines_report",
+            "fields": ["id", "program_id", "user_id", "selectionid", "compareid", "type", "level", "created_date"]
+          },
+          "beliefs_report": {
+            "table": "cc_beliefs_report_new",
+            "fields": ["id", "selectionid", "compareid", "userid"]
+          }
+        },
+        "exercise_flow": {
+          "level_1": "Select all words that resonate with you from a master list",
+          "level_2": "Compare selected words in pairs and choose most meaningful",
+          "level_3": "Narrow down to top 5 core beliefs/patterns"
+        },
+        "words_per_group": "Variable (typically 20-30 words per group)",
+        "multi_language": true
+      },
+      
+      {
+        "id": 3,
+        "name": "N-codes / Beliefs Discovery",
+        "description": "Three-stage belief identification through progressive selection and comparison",
+        "controller": "app/Controllers/Program/Ncodes.php",
+        "views": ["program/ncodes/index.php", "program/beliefs/start.php"],
+        "database_tables": {
+          "beliefs_master": {
+            "table": "prg_beliefs",
+            "fields": ["id", "language", "belief_text", "category", "group_id", "status"]
+          },
+          "user_reports": {
+            "table": "cc_beliefs_report",
+            "fields": ["id", "program_id", "user_id", "selected_beliefs", "comparisons", "final_ncodes", "type", "created_date"]
+          }
+        },
+        "stages": {
+          "stage_1": "Initial belief selection from categorized list",
+          "stage_2": "Pairwise comparison of selected beliefs",
+          "stage_3": "Final N-code identification (core limiting beliefs)"
+        },
+        "output": "Personal N-codes (limiting beliefs) for transformation work",
+        "multi_language": true
+      },
+      
+      {
+        "id": 4,
+        "name": "Decision Making Wheel",
+        "description": "9-question decision analysis tool for evaluating important life decisions",
+        "controller": "app/Controllers/Program/Decisionmaking.php",
+        "views": ["program/decision_making/index.php"],
+        "database_tables": {
+          "questions_master": {
+            "table": "prg_decision_making",
+            "fields": ["id", "language", "srno", "question", "status", "created_at", "updated_at"]
+          },
+          "user_reports": {
+            "table": "cc_decesion_report",
+            "fields": ["id", "program_id", "user_id", "goal", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "type", "demoactivecount", "createdat"]
+          }
+        },
+        "questions": [
+          "Q1: How aligned is this with your values?",
+          "Q2: What is the risk level?",
+          "Q3: What is your gut feeling?",
+          "Q4: How does this affect your health?",
+          "Q5: What is the financial impact?",
+          "Q6: How does this affect relationships?",
+          "Q7: What is the time commitment?",
+          "Q8: Does this excite you?",
+          "Q9: Is this reversible?"
+        ],
+        "scoring": "Each question rated 1-10, visualized on wheel",
+        "output": "Decision confidence score with visual wheel representation",
+        "multi_language": true
+      },
+      
+      {
+        "id": 5,
+        "name": "Define My Outcomes",
+        "description": "Priority calculator with 8 evaluation factors for outcome planning",
+        "controller": "app/Controllers/Program/Defineoutcome.php",
+        "views": ["program/define_outcome/start.php"],
+        "database_tables": {
+          "user_reports": {
+            "table": "cc_outcome_report",
+            "fields": ["id", "program_id", "user_id", "potential_priority", "predict_ranking", "time_upfront", "time_ongoing", "difficulty", "enjoyment", "impact_90_day", "impact_25_yr", "total_score", "type", "createdat"]
+          }
+        },
+        "evaluation_factors": [
+          {"name": "Potential Priority", "description": "User enters their outcome goal text"},
+          {"name": "Predicted Ranking", "description": "Initial gut ranking"},
+          {"name": "Time (Upfront)", "scale": "1-5 (1=most, 5=least)", "description": "Initial time investment"},
+          {"name": "Time (Ongoing)", "scale": "1-5", "description": "Ongoing time commitment"},
+          {"name": "Difficulty", "scale": "1-5", "description": "Challenge level"},
+          {"name": "Enjoyment", "scale": "1-5", "description": "Personal satisfaction"},
+          {"name": "Impact (90 day)", "scale": "1-5", "description": "Short-term impact"},
+          {"name": "Impact (25 yr)", "scale": "1-5", "description": "Long-term impact"}
+        ],
+        "scoring_formula": "Total Score = Sum of (each factor value squared)",
+        "rows_per_submission": 3,
+        "output": "Prioritized outcomes with highest total score highlighted",
+        "redo_limit": 3,
+        "multi_language": true
+      },
+      
+      {
+        "id": 6,
+        "name": "Financial Blueprint (SMB)",
+        "description": "Secret Millionaire Blueprint - comprehensive income and spending analysis",
+        "controller": "app/Controllers/Program/Smb.php",
+        "views": ["program/smb/index.php", "program/smb/activity.php"],
+        "database_tables": {
+          "currency_master": {
+            "table": "prg_smb_currency",
+            "fields": ["id", "currency_code", "currency_symbol", "currency_name", "status"]
+          },
+          "activity_master": {
+            "table": "prg_smb_activity_mst",
+            "fields": ["id", "title", "status"]
+          },
+          "questions_master": {
+            "table": "prg_smb_question_mst",
+            "fields": ["id", "mst_id", "srno", "title", "db_column", "status"]
+          },
+          "questions_sub": {
+            "table": "prg_smb_question_sub",
+            "fields": ["id", "mst_id", "srno", "title", "status"]
+          },
+          "user_answers": {
+            "table": "cc_smb_answer",
+            "fields": ["id", "program_id", "user_id", "type", "smb_type", "smb_mst_id", "smb_sub_id", "srno", "weekly", "monthly", "yearly", "monthly_total", "desire_total", "attemp_no", "created_at"]
+          },
+          "user_attempts": {
+            "table": "cc_smb_attempts",
+            "fields": ["id", "program_id", "user_id", "type", "pdfname", "currency", "total_income", "total_spend", "json_result", "attemp_no", "createdat"]
+          },
+          "user_questions": {
+            "table": "cc_smb_user_qus",
+            "fields": ["id", "program_id", "user_id", "type", "question_id", "answer", "created_at"]
+          },
+          "activity_attempts": {
+            "table": "cc_smb_act_attempts",
+            "fields": ["id", "program_id", "user_id", "activity_id", "status", "created_at"]
+          }
+        },
+        "activities": [
+          "Activity 1: Income Sources Analysis",
+          "Activity 2: Fixed Expenses Tracking",
+          "Activity 3: Variable Expenses Tracking",
+          "Activity 4: Savings & Investment Planning",
+          "Activity 5: Financial Goals Setting"
+        ],
+        "input_frequencies": ["weekly", "monthly", "yearly"],
+        "output": "PDF report with income vs spending analysis, financial ratios, recommendations",
+        "multi_currency": true,
+        "multi_language": true
+      },
+      
+      {
+        "id": 7,
+        "name": "Personality Assessment",
+        "description": "Personality type identification with state and mood analysis",
+        "controller": "app/Controllers/Program/Personality.php",
+        "views": ["program/personality/index.php"],
+        "database_tables": {
+          "user_reports": {
+            "table": "cc_personality_report",
+            "fields": ["id", "program_id", "user_id", "p_type", "state", "mood_state", "subtype", "ntype", "mood", "filename", "type", "size_type", "create_date"]
+          }
+        },
+        "assessment_dimensions": {
+          "p_type": "Primary personality type",
+          "state": "Current emotional state",
+          "mood_state": "Mood state indicator",
+          "subtype": "Personality subtype",
+          "ntype": "N-type classification",
+          "mood": "Mood indicator"
+        },
+        "output": "Personality profile with type and state analysis",
+        "generates_pdf": true,
+        "multi_language": true
+      },
+      
+      {
+        "id": 8,
+        "name": "Inner DNA Assessment",
+        "description": "Word-based personality insights through group selection and analysis",
+        "controller": "app/Controllers/Program/Innerdna.php",
+        "views": ["program/inner_dna/index.php", "program/inner_dna/baseline.php"],
+        "database_tables": {
+          "words_master": {
+            "table": "prg_inner_dna",
+            "fields": ["id", "language", "word", "group_id", "meaning", "status"]
+          },
+          "user_reports": {
+            "table": "cc_inner_dna_report",
+            "fields": ["id", "program_id", "user_id", "selected_words", "analysis", "created_date"]
+          }
+        },
+        "word_groups": "Multiple groups for categorized word selection",
+        "process": "Select resonating words -> AI analyzes patterns -> Generate insights",
+        "output": "Personalized DNA profile with word-based insights",
+        "ai_integration": true,
+        "multi_language": true
+      },
+      
+      {
+        "id": 9,
+        "name": "Goal Setting Tool",
+        "description": "Structured goal definition and planning tool",
+        "controller": "app/Controllers/Program/Goals.php",
+        "views": ["program/goals/index.php"],
+        "database_tables": {
+          "user_goals": {
+            "table": "cc_goals_report",
+            "fields": ["id", "program_id", "user_id", "goal_text", "category", "timeline", "action_steps", "obstacles", "resources", "type", "created_date"]
+          }
+        },
+        "goal_categories": [
+          "Career",
+          "Health",
+          "Relationships",
+          "Finance",
+          "Personal Growth",
+          "Contribution"
+        ],
+        "planning_elements": [
+          "Goal statement",
+          "Why it matters",
+          "Timeline",
+          "Action steps",
+          "Potential obstacles",
+          "Required resources"
+        ],
+        "multi_language": true
+      },
+      
+      {
+        "id": 10,
+        "name": "Vision Board",
+        "description": "Digital vision board creation with image and text elements",
+        "controller": "app/Controllers/Program/Visionboard.php",
+        "views": ["program/visionboard/index.php"],
+        "database_tables": {
+          "user_boards": {
+            "table": "cc_visionboard",
+            "fields": ["id", "program_id", "user_id", "board_data", "images", "texts", "created_date", "updated_date"]
+          }
+        },
+        "features": [
+          "Image upload and positioning",
+          "Text overlay",
+          "Category sections",
+          "Export to image/PDF"
+        ],
+        "multi_language": true
+      }
+    ]
+  },
+  
+  "tool_activity_mapping": {
+    "description": "How tools are linked to program activities",
+    "table": "prg_practice_tool",
+    "fields": ["id", "program_id", "tool_id", "week_id", "step_no", "mandatory", "sequence", "status"],
+    "activity_ids": {
+      "1": "Baselines",
+      "2": "N-codes/Beliefs",
+      "3": "Wheel of Life",
+      "4": "Decision Making",
+      "5": "Define Outcomes",
+      "6": "SMB Financial Blueprint",
+      "7": "Personality Assessment",
+      "8": "Inner DNA",
+      "9": "Goal Setting",
+      "10": "Vision Board"
+    }
+  },
+  
+  "shared_infrastructure": {
+    "activity_tracking": {
+      "table": "cc_demo_activity_count",
+      "purpose": "Track practice/demo usage across all tools",
+      "fields": ["program_id", "activity_id", "user_id", "type", "count"]
+    },
+    "step_completion": {
+      "table": "cc_user_step_activity",
+      "purpose": "Track mandatory activity completion in programs",
+      "fields": ["program_id", "user_id", "week_id", "step_no", "status", "completed_at"]
+    },
+    "pdf_generation": {
+      "library": "TCPDF / html2pdf",
+      "storage": "uploads/reports/",
+      "naming": "{tool}_{user_id}_{timestamp}.pdf"
+    }
+  },
+  
+  "multi_language_support": {
+    "languages": {
+      "1": "Hindi",
+      "2": "English"
+    },
+    "content_tables_with_language": [
+      "prg_wheel_of_life",
+      "prg_baselines_word_selection",
+      "prg_beliefs",
+      "prg_decision_making",
+      "prg_inner_dna"
+    ],
+    "ui_content_table": "content",
+    "ui_content_id": "Content ID references for each tool (e.g., content(27, langid) for Define Outcomes)"
+  },
+  
+  "ai_integration_points": {
+    "inner_dna": "Word pattern analysis for personality insights",
+    "baselines": "Belief pattern identification",
+    "personality": "Type interpretation and recommendations",
+    "coaching_integration": "All tool outputs can feed into AI coaching chat"
+  },
+  
+  "data_extraction_needed": {
+    "from_database": [
+      "prg_wheel_of_life - Question text and colors for each component",
+      "prg_baselines_word_selection - Word lists with meanings",
+      "prg_beliefs - Belief statements and categories",
+      "prg_decision_making - Question text for each of 9 questions",
+      "prg_inner_dna - Word lists with group assignments",
+      "prg_smb_question_mst + prg_smb_question_sub - SMB question hierarchy",
+      "prg_smb_currency - Currency options",
+      "content - UI text for all tools in all languages"
+    ],
+    "access_required": "Developer database access or manual extraction from admin UI"
+  },
+  
+  "react_implementation_notes": {
+    "state_management": "localStorage for in-progress assessments, API for completed",
+    "visualization_libraries": [
+      "Recharts for Wheel of Life radar chart",
+      "D3.js for Decision Making wheel",
+      "Canvas/SVG for Vision Board"
+    ],
+    "form_handling": "React Hook Form with validation",
+    "pdf_generation": "html2pdf.js or react-pdf for client-side PDF",
+    "offline_support": "Service worker for tool persistence"
+  }
+}

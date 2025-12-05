@@ -1,0 +1,237 @@
+{
+  "export_info": {
+    "extracted_from": "CI4 Codebase (app/Models, app/Controllers, app/Views)",
+    "extraction_date": "2025-12-05",
+    "source": "innerdna.com - Developer's AWS Server",
+    "status": "COMPLETE - All structures and schemas extracted",
+    "note": "Actual content data requires developer database access"
+  },
+
+  "treasures": {
+    "description": "Coach Training Program Resources - 'The Incredible Treasure'",
+    "access_rule": "Must have access to Coach Training Programs (program_id IN [1, 6, 32, 39]) OR treasure access (program_id 31 or 38)",
+    "database_tables": {
+      "incredible_treasure": {
+        "table": "prg_incredible_treasure",
+        "fields": ["id", "srno", "title", "description", "image", "btn_text", "language", "status"],
+        "description": "Main treasure categories"
+      },
+      "marketing_master": {
+        "table": "prg_marketing_mst",
+        "fields": ["id", "treas_id", "parent_id", "title", "description", "language", "btn_text", "btn_url", "parent", "status", "image", "file_type", "personality_limit", "program_id"],
+        "description": "Marketing content categories (hierarchical)"
+      },
+      "marketing_sub": {
+        "table": "prg_marketing_sub",
+        "fields": ["id", "mst_id", "title", "description", "article_by", "article_date", "res_option", "pdf_doc_id", "images", "video", "video_thumb", "btn_one_text", "btn_one_url", "btn_one_opt", "btn_two_text", "btn_two_url", "btn_two_opt", "share_btn", "status"],
+        "description": "Individual content items (videos, PDFs, articles)"
+      },
+      "marketing_pdf": {
+        "table": "prg_marketing_pdf",
+        "fields": ["id", "pdf_title", "language", "status"],
+        "description": "PDF document master list"
+      },
+      "treasure_access": {
+        "table": "cc_treasures_access",
+        "description": "User access control for treasures"
+      }
+    },
+    "categories": [
+      {
+        "id": 1,
+        "title": "Marketing & Promotions",
+        "description": "Marketing materials, promotional content, and sales resources for coaches",
+        "language_versions": ["English", "Hindi"],
+        "file_types": ["pdf", "video", "image"],
+        "subcategories": [
+          {
+            "title": "The Incredible You Promotion",
+            "content_types": ["videos", "articles", "downloadable PDFs"]
+          },
+          {
+            "title": "Who is Arfeen Khan?",
+            "content_types": ["bio materials", "articles", "books info"]
+          },
+          {
+            "title": "Success Stories",
+            "content_types": ["video testimonials", "case studies"]
+          },
+          {
+            "title": "Webinar Promos",
+            "content_types": ["video clips", "promotional materials"]
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Other Resources",
+        "description": "Additional coaching resources and tools",
+        "language_versions": ["English", "Hindi"],
+        "subcategories": [
+          {
+            "title": "Coaching Staff Resources",
+            "content_types": ["training materials", "guides"]
+          },
+          {
+            "title": "Tutorials & Walkthroughs",
+            "content_types": ["video tutorials", "step-by-step guides"]
+          },
+          {
+            "title": "Monitoring Calls",
+            "content_types": ["recorded calls", "feedback sessions"]
+          }
+        ]
+      }
+    ],
+    "content_examples": [
+      {
+        "title": "Speak To A Fortune (Book)",
+        "description": "Arfeen's system teaching step-by-step how to become a highly-paid expert with books, blogs, speaking, seminars, coaching, and training.",
+        "file_type": "ebook",
+        "file_url": "uploads/images/books1.png",
+        "access_rule": "coach_training_enrolled"
+      },
+      {
+        "title": "The Secrets Millionaire Blueprint (Book)",
+        "description": "Guide to achieving commercial, emotional, and spiritual success through perspective altering.",
+        "file_type": "ebook",
+        "file_url": "uploads/images/books2.png",
+        "access_rule": "coach_training_enrolled"
+      },
+      {
+        "title": "Life lessons with Arfeen Khan",
+        "description": "Article from Filmfare - April 18, 2021. Over two decades of life-coaching experience helping 600,000+ people in 47+ countries.",
+        "file_type": "article",
+        "file_url": "uploads/images/articles1.png",
+        "access_rule": "coach_training_enrolled"
+      },
+      {
+        "title": "CTF Foundation X Event Coverage",
+        "description": "Asia's biggest global virtual 360 mega event coverage from BW BUSINESSWORLD - December 9, 2020.",
+        "file_type": "article",
+        "file_url": "uploads/images/articles2.png",
+        "access_rule": "coach_training_enrolled"
+      }
+    ],
+    "res_option_types": {
+      "1": "Video content",
+      "2": "Image content",
+      "3": "PDF document",
+      "4": "Personality test content"
+    },
+    "btn_opt_types": {
+      "1": "Download",
+      "2": "Open in new tab"
+    }
+  },
+
+  "bonuses": {
+    "description": "Client Program Bonuses - Unlockable content for enrolled clients",
+    "database_tables": {
+      "my_bonuses": {
+        "table": "prg_my_bonuses",
+        "fields": ["id", "program_id", "title", "description", "image", "download_files", "down_open", "status", "created_at"],
+        "description": "Bonus content items linked to programs"
+      }
+    },
+    "access_rule": "Must be enrolled in the associated program (e.g., program_id = 11 for main client program)",
+    "current_bonus_program": "program_id: 11",
+    "display_format": "Carousel with owl-carousel, showing title, description, thumbnail, and download button",
+    "down_open_options": {
+      "1": "Download file directly",
+      "2": "Open file in browser"
+    },
+    "file_storage": "uploads/data/{filename}",
+    "thumbnail_storage": "uploads/uploads/bonuses/{image}",
+    "content_examples": [
+      {
+        "title": "Bonus Training Materials",
+        "description": "Additional training content unlocked upon enrollment",
+        "file_type": "pdf",
+        "unlock_trigger": "enrollment"
+      },
+      {
+        "title": "Exclusive Video Content",
+        "description": "Premium video sessions available to enrolled clients",
+        "file_type": "video",
+        "unlock_trigger": "enrollment"
+      },
+      {
+        "title": "Workbook Resources",
+        "description": "Downloadable workbooks and exercises",
+        "file_type": "pdf",
+        "unlock_trigger": "enrollment"
+      }
+    ]
+  },
+
+  "resource_center": {
+    "description": "STF Mastermind Resource Center - Additional resources for mastermind participants",
+    "access_rule": "STF Mastermind program enrollment",
+    "content_types": ["videos", "PDFs", "articles", "tools"],
+    "database_query": "prg_marketing_mst WHERE treas_id = 6 OR id IN [15, 19]"
+  },
+
+  "personality_resources": {
+    "description": "Personality assessment resources available through treasure",
+    "types": [
+      {
+        "name": "Small Personality Report",
+        "views": ["small_personality_start", "small_personality_assessment", "small_personality_report", "small_personality_assess_done"]
+      },
+      {
+        "name": "Big Personality Report",
+        "views": ["big_personality_start", "big_personality_assessment", "big_personality_report", "big_assess_done"],
+        "subtypes": ["big_type", "big_state", "big_state_info", "big_subtype", "big_top_state"]
+      }
+    ],
+    "database_tables": {
+      "registration": "cc_personality_test_register",
+      "reports": "cc_personality_test_report"
+    },
+    "personality_limit": "Configurable per marketing item via personality_limit field"
+  },
+
+  "access_control": {
+    "treasure_access": {
+      "programs_granting_access": [1, 6, 32, 39],
+      "special_access_table": "cc_treasures_access (program_id 31 or 38)",
+      "language_filter": "Access filtered by program language (HINDI or ENGLISH)"
+    },
+    "bonus_access": {
+      "program_based": "Bonuses linked to specific program_id",
+      "status_check": "status = 1 for active bonuses"
+    }
+  },
+
+  "file_paths": {
+    "treasure_images": "uploads/images/",
+    "bonus_thumbnails": "uploads/uploads/bonuses/",
+    "bonus_downloads": "uploads/data/",
+    "marketing_pdfs": "uploads/pdfs/"
+  },
+
+  "data_extraction_needed": {
+    "from_database": [
+      "prg_incredible_treasure - Full treasure category list with descriptions",
+      "prg_marketing_mst - All marketing content hierarchy",
+      "prg_marketing_sub - Individual content items with video IDs and PDF links",
+      "prg_marketing_pdf - PDF document master list",
+      "prg_my_bonuses - All bonus items with download file lists"
+    ],
+    "access_required": "Developer database access (see AWS_DATABASE_ACCESS_GUIDE.md)"
+  },
+
+  "react_implementation_notes": {
+    "components_needed": [
+      "TreasureHub - Main treasure landing page with category cards",
+      "MarketingCategory - Subcategory navigation",
+      "ContentViewer - Video/PDF/Article display component",
+      "BonusCarousel - Owl-carousel style bonus display",
+      "DownloadButton - Handle download vs open functionality"
+    ],
+    "access_control": "Check user program enrollments before displaying content",
+    "file_handling": "Server-side file serving with authentication checks",
+    "carousel_library": "Consider react-slick or embla-carousel as owl-carousel replacement"
+  }
+}

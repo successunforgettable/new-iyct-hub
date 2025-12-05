@@ -1,0 +1,260 @@
+{
+  "export_info": {
+    "extracted_from": "CI4 Codebase (app/Models, app/Controllers, app/Views)",
+    "extraction_date": "2025-12-05",
+    "source": "innerdna.com - Developer's AWS Server",
+    "status": "COMPLETE - All database tables and Vimeo configuration extracted"
+  },
+
+  "database_tables": {
+    "core_program_tables": {
+      "programs": "prg_master",
+      "weeks": "prg_week_management",
+      "steps": "prg_steps_management",
+      "enrollments": "cc_program_access",
+      "progress": "cc_steps",
+      "week_access": "cc_week_access",
+      "batches": "prg_batch_management",
+      "plans": "prg_plan_mst",
+      "installments": "prg_installment_mst"
+    },
+
+    "user_tables": {
+      "coaches": "cc_coach",
+      "admin_users": "adm_users",
+      "user_roles": "adm_userrole",
+      "role_permissions": "adm_role_permissions",
+      "user_permissions": "adm_user_permissions"
+    },
+
+    "treasure_and_bonus_tables": {
+      "treasures": "prg_incredible_treasure",
+      "marketing_hub": "prg_marketing_hub",
+      "marketing_master": "prg_marketing_mst",
+      "marketing_sub": "prg_marketing_sub",
+      "marketing_pdf": "prg_marketing_pdf"
+    },
+
+    "certification_tables": {
+      "certifications": "prg_coach_certificate",
+      "certification_videos": "prg_certification_video",
+      "user_certification_videos": "cc_coach_certification_videos",
+      "certificate_design": "prg_certificate_design",
+      "generated_certificates": "cc_generate_certificate",
+      "mcq_questions": "prg_coach_mcq",
+      "mcq_options": "prg_coach_mcq_options",
+      "mcq_answers": "cc_coach_mcq_ans"
+    },
+
+    "activity_tables": {
+      "wheel_of_life": "prg_wheel_of_life",
+      "wheel_of_life_report": "cc_wheeloflife_report",
+      "baselines": "cc_baselines_report",
+      "baselines_new": "cc_baselines_report_new",
+      "ncodes": "cc_beliefs_sixcode",
+      "beliefs_report": "cc_beliefs_report",
+      "beliefs_new_report": "cc_beliefs_report_new",
+      "beliefs_rating": "cc_beliefs_rating_report",
+      "decision_wheel": "cc_decision_wheel_report",
+      "outcome_report": "cc_outcome_report"
+    },
+
+    "personality_assessment_tables": {
+      "personality_master": "prg_personality_mst",
+      "personality_assessment": "prg_personality_assessment",
+      "personality_start": "prg_personality_start",
+      "personality_result": "prg_personality_result",
+      "personality_result_sub": "prg_personality_result_sub",
+      "personality_result_type": "prg_personality_result_type",
+      "personality_result_subtype": "prg_personality_result_subtype",
+      "personality_result_state": "prg_personality_result_state",
+      "personality_state_master": "prg_personality_state_mst",
+      "personality_state_sub": "prg_personality_state_sub",
+      "user_personality_report": "cc_personality_report",
+      "personality_test_register": "cc_personality_test_register",
+      "personality_test_report": "cc_personality_test_report",
+      "inner_dna": "prg_inner_dna",
+      "inner_dna_new": "prg_inner_dna_new"
+    },
+
+    "smb_activity_tables": {
+      "smb_activity_master": "prg_smb_activity_mst",
+      "smb_question_master": "prg_smb_question_mst",
+      "smb_question_sub": "prg_smb_question_sub",
+      "smb_currency": "prg_smb_currency",
+      "user_smb_answer": "cc_smb_answer",
+      "user_smb_attempts": "cc_smb_attempts",
+      "user_smb_act_attempts": "cc_smb_act_attempts",
+      "user_smb_currency": "cc_smb_currency",
+      "user_smb_questions": "cc_smb_user_qus"
+    },
+
+    "btf_tables": {
+      "btf_main": "prg_btf_main",
+      "btf_subtopic": "prg_btf_subtopic",
+      "btf_subsubtopic": "prg_btf_subsubtopic",
+      "btf_book_info": "cc_btf_book_info",
+      "btf_book_status": "cc_btf_book_status",
+      "btf_niche_answer": "cc_btf_niche_answer",
+      "btf_testimonials": "cc_btf_testimonials",
+      "btf_userdata": "cc_btf_userdata"
+    },
+
+    "stf_tables": {
+      "stf_niche_topic": "prg_stf_niche_topic",
+      "stf_niche_subtopic": "prg_stf_niche_subtopic",
+      "stf_niche_result": "cc_stf_niche_result",
+      "stf_profile_answers": "cc_speaktofortune_profile_ans",
+      "stf_outcome_pdf": "prg_stf_outcome_pdf"
+    },
+
+    "payment_tables": {
+      "payment_gateway_master": "prg_payment_gateway_mst",
+      "fees_master": "prg_fees_mst",
+      "coach_fees": "cc_coach_prog_fees",
+      "coach_collection": "cc_coach_collection",
+      "temp_payment": "cc_temp_payment_trn",
+      "transactions": "all_transaction"
+    },
+
+    "kyc_tables": {
+      "kyc": "cc_kyc",
+      "video_kyc": "cc_video_kyc"
+    },
+
+    "content_tables": {
+      "category": "prg_category",
+      "content_category": "prg_content_category",
+      "dynamic_content": "prg_dynamic_content",
+      "file_upload": "prg_file_upload",
+      "practice_tools": "prg_practice_tool",
+      "activity_master": "prg_activity_master",
+      "assignment_master": "prg_assignment_master",
+      "assignment_sub": "prg_assignment_sub",
+      "testimonials": "prg_testimonial",
+      "zoom_links": "prg_zoom_link"
+    },
+
+    "configuration_tables": {
+      "program_welcome": "prg_welcome",
+      "program_terms": "prg_terms",
+      "program_support": "prg_program_support",
+      "currency_master": "prg_currency_mst",
+      "country_master": "prg_country_master",
+      "tooltip": "prg_tooltip",
+      "steps_button_master": "prg_steps_btn_mst"
+    },
+
+    "client_program_tables": {
+      "client_step_management": "prg_client_step_management",
+      "client_batch": "cc_client_batch",
+      "demo_activity_count": "cc_demo_activity_count"
+    }
+  },
+
+  "table_prefixes": {
+    "prg_": "Program configuration and master data",
+    "cc_": "User/Coach data and activity records",
+    "adm_": "Admin and authentication tables"
+  },
+
+  "key_table_details": {
+    "prg_master": {
+      "purpose": "Central program configuration",
+      "key_fields": ["id", "pr_code", "pr_certificate_code", "pr_language", "pr_title", "pr_fees", "pr_description", "pr_total_week", "pr_start_week", "pr_logo", "pr_program_website", "prestudy_prg_id", "demo_prg_id", "marketing_prg_id", "paid_prg_id", "market_share_count", "certification_step", "plan_enabled", "IsIssueCertificate", "video_kyc_enable"]
+    },
+    "prg_week_management": {
+      "purpose": "Week definitions per program",
+      "key_fields": ["id", "program_id", "we_weekno", "we_weekno_text", "we_weektitle", "we_no_ofstep", "we_manual", "we_start_message", "we_end_message", "we_certification_vdo", "status", "we_type"]
+    },
+    "prg_steps_management": {
+      "purpose": "Step definitions within weeks",
+      "key_fields": ["id", "program_id", "week_id", "week", "stp_title", "stp_stepno", "stp_description", "stp_videoid", "stp_video_length", "stp_select_activity", "extra_activity", "stp_demo_tool", "stp_iscertification"]
+    },
+    "cc_program_access": {
+      "purpose": "User program enrollments",
+      "key_fields": ["id", "program_id", "user_id", "batch_id", "certificate_status", "certificate_srno", "status", "parent_user_id", "marketing_cnt", "active", "access_for", "payment_proof", "kyc"]
+    },
+    "cc_steps": {
+      "purpose": "User step completion tracking",
+      "key_fields": ["id", "user_id", "batch_id", "program_id", "week", "step", "status", "broadcast", "mark_complete", "start_time", "end_time"]
+    },
+    "cc_week_access": {
+      "purpose": "User week unlock status",
+      "key_fields": ["id", "user_id", "batch_id", "client_id", "program_id", "week", "status", "start_time", "end_time", "week_access"]
+    },
+    "cc_coach": {
+      "purpose": "User/Coach profiles",
+      "key_fields": ["user_id", "name", "email_id", "mob_no", "image", "password", "user_key", "city", "country", "dob", "currency", "status", "user_type", "parent_id", "test_user", "personality_count", "big_personality_count"]
+    }
+  },
+
+  "vimeo": {
+    "embed_method": "iframe",
+    "privacy_setting": "domain_restricted",
+    "player_api": "Vimeo Player API (api=1 parameter)",
+    
+    "embed_url_format": "https://player.vimeo.com/video/{video_id}?api=1",
+    
+    "sample_embed_code": "<iframe class=\"player1\" src=\"https://player.vimeo.com/video/{stp_videoid}?api=1\" allowfullscreen></iframe>",
+    
+    "video_id_storage": {
+      "field": "stp_videoid",
+      "table": "prg_steps_management",
+      "description": "Vimeo video ID stored as string"
+    },
+    
+    "video_length_storage": {
+      "field": "stp_video_length",
+      "table": "prg_steps_management",
+      "description": "Video duration for display"
+    },
+    
+    "playback_features": [
+      "Modal popup player for in-step viewing",
+      "Progress tracking via JavaScript",
+      "autoplay on modal open",
+      "fullscreen support"
+    ],
+    
+    "javascript_integration": {
+      "library": "videopopupjs",
+      "player_class": "player1",
+      "trigger_class": "vimeovdo",
+      "data_attribute": "data-url"
+    },
+    
+    "video_thumbnail": {
+      "field": "stp_image_thumb",
+      "table": "prg_steps_management",
+      "format": "Custom uploaded thumbnail or Vimeo auto-generated"
+    },
+
+    "certification_videos": {
+      "storage": "User-uploaded to server",
+      "table": "cc_coach_certification_videos",
+      "fields": ["video_url", "video_thumbnail", "status"]
+    }
+  },
+
+  "react_migration_notes": {
+    "database_layer": {
+      "recommendation": "Use Drizzle ORM with PostgreSQL",
+      "schema_approach": "Create TypeScript schemas matching table structures",
+      "naming_convention": "Convert snake_case to camelCase for TypeScript"
+    },
+    "video_player": {
+      "recommendation": "Use @vimeo/player npm package",
+      "component": "VimeoPlayer component with progress tracking",
+      "features": ["Autoplay", "Progress callbacks", "Fullscreen", "Responsive embed"]
+    },
+    "key_migrations": [
+      "prg_master -> programs table",
+      "prg_week_management -> weeks table",
+      "prg_steps_management -> steps table",
+      "cc_program_access -> enrollments table",
+      "cc_steps -> step_progress table",
+      "cc_week_access -> week_access table"
+    ]
+  }
+}
