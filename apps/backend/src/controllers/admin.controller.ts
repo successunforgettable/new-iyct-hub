@@ -1,168 +1,100 @@
-// apps/backend/src/controllers/admin.controller.ts
-// Master Plan: Week 4 Day 6-7 - Admin Panel Basic
-
 import { Request, Response } from 'express';
 import { adminService } from '../services/admin/admin.service';
 
-export const adminController = {
-  // GET /admin/users
-  async getUsers(req: Request, res: Response) {
-    try {
-      const user = (req as any).user;
-      const role = (user?.role || user?.userRole || '').toUpperCase();
+export const getUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { page, limit, search, role } = req.query;
+    
+    const result = await adminService.getUsers({
+      page: page ? parseInt(page as string) : 1,
+      limit: limit ? parseInt(limit as string) : 10,
+      search: search as string,
+      role: role as string,
+    });
 
-      if (role !== 'ADMIN' && role !== 'SUPERADMIN') {
-        res.status(403).json({
-          success: false,
-          error: { code: 'FORBIDDEN', message: 'Admin access required' },
-        });
-        return;
-      }
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch users',
+    });
+  }
+};
 
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const search = req.query.search as string;
-      const roleFilter = req.query.role as string;
-      const status = req.query.status as string;
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const data = req.body;
+    
+    const user = await adminService.updateUser(userId, data);
+    
+    res.json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update user',
+    });
+  }
+};
 
-      const result = await adminService.getUsers({ page, limit, search, role: roleFilter, status });
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    
+    await adminService.deleteUser(userId);
+    
+    res.json({
+      success: true,
+      message: 'User deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete user',
+    });
+  }
+};
 
-      res.json({
-        success: true,
-        data: result.data,
-        pagination: result.pagination,
-        meta: { timestamp: new Date().toISOString() },
-      });
-    } catch (error) {
-      console.error('Admin getUsers error:', error);
-      res.status(500).json({
-        success: false,
-        error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch users' },
-      });
-    }
-  },
+export const getPrograms = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await adminService.getPrograms();
+    
+    res.json({
+      success: true,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error('Get programs error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch programs',
+    });
+  }
+};
 
-  // GET /admin/programs
-  async getPrograms(req: Request, res: Response) {
-    try {
-      const user = (req as any).user;
-      const role = (user?.role || user?.userRole || '').toUpperCase();
-
-      if (role !== 'ADMIN' && role !== 'SUPERADMIN') {
-        res.status(403).json({
-          success: false,
-          error: { code: 'FORBIDDEN', message: 'Admin access required' },
-        });
-        return;
-      }
-
-      const programs = await adminService.getPrograms();
-
-      res.json({
-        success: true,
-        data: programs,
-        meta: { timestamp: new Date().toISOString() },
-      });
-    } catch (error) {
-      console.error('Admin getPrograms error:', error);
-      res.status(500).json({
-        success: false,
-        error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch programs' },
-      });
-    }
-  },
-
-  // GET /admin/analytics
-  async getAnalytics(req: Request, res: Response) {
-    try {
-      const user = (req as any).user;
-      const role = (user?.role || user?.userRole || '').toUpperCase();
-
-      if (role !== 'ADMIN' && role !== 'SUPERADMIN') {
-        res.status(403).json({
-          success: false,
-          error: { code: 'FORBIDDEN', message: 'Admin access required' },
-        });
-        return;
-      }
-
-      const analytics = await adminService.getAnalytics();
-
-      res.json({
-        success: true,
-        data: analytics,
-        meta: { timestamp: new Date().toISOString() },
-      });
-    } catch (error) {
-      console.error('Admin getAnalytics error:', error);
-      res.status(500).json({
-        success: false,
-        error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch analytics' },
-      });
-    }
-  },
-
-  // PATCH /admin/users/:id
-  async updateUser(req: Request, res: Response) {
-    try {
-      const user = (req as any).user;
-      const role = (user?.role || user?.userRole || '').toUpperCase();
-
-      if (role !== 'ADMIN' && role !== 'SUPERADMIN') {
-        res.status(403).json({
-          success: false,
-          error: { code: 'FORBIDDEN', message: 'Admin access required' },
-        });
-        return;
-      }
-
-      const { id } = req.params;
-      const { fullName, userRole, status } = req.body;
-
-      const updatedUser = await adminService.updateUser(id, { fullName, userRole, status });
-
-      res.json({
-        success: true,
-        data: updatedUser,
-        meta: { timestamp: new Date().toISOString() },
-      });
-    } catch (error) {
-      console.error('Admin updateUser error:', error);
-      res.status(500).json({
-        success: false,
-        error: { code: 'INTERNAL_ERROR', message: 'Failed to update user' },
-      });
-    }
-  },
-
-  // DELETE /admin/users/:id
-  async deleteUser(req: Request, res: Response) {
-    try {
-      const user = (req as any).user;
-      const role = (user?.role || user?.userRole || '').toUpperCase();
-
-      if (role !== 'SUPERADMIN') {
-        res.status(403).json({
-          success: false,
-          error: { code: 'FORBIDDEN', message: 'Superadmin access required' },
-        });
-        return;
-      }
-
-      const { id } = req.params;
-      await adminService.deleteUser(id);
-
-      res.json({
-        success: true,
-        message: 'User deleted successfully',
-        meta: { timestamp: new Date().toISOString() },
-      });
-    } catch (error) {
-      console.error('Admin deleteUser error:', error);
-      res.status(500).json({
-        success: false,
-        error: { code: 'INTERNAL_ERROR', message: 'Failed to delete user' },
-      });
-    }
-  },
+export const getAnalytics = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await adminService.getAnalytics();
+    
+    res.json({
+      success: true,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error('Get analytics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch analytics',
+    });
+  }
 };

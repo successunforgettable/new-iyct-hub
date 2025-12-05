@@ -202,6 +202,7 @@ model Program {
   slug        String      @unique
   name        String
   description String?
+  imageUrl    String?
   programType ProgramType
   language    String      @default("en")
   
@@ -243,6 +244,7 @@ model ProgramWeek {
   weekNumber  Int
   title       String
   description String?
+  imageUrl    String?
   objectives  String[]
   
   // Configuration
