@@ -54,7 +54,7 @@ const CATEGORIES = [
     name: 'Speak To Fortune',
     description: 'Public speaking mastery programs',
     color: '#f0ad4e',
-    matchCodes: ['stf', 'stf2'],
+    matchCodes: ['stfme', 'stf2', 'stf'],
   },
   {
     id: '6-figure-author',
@@ -111,7 +111,7 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, categoryColor, onVie
   const totalWeeks = program.totalWeeks || program._count?.weeks || 0;
 
   // Detect language from programId
-  const isHindi = program.programId?.includes('-hi') || program.language === 'HINDI' || program.language === 'HINDI' || program.language === 'hi';
+  const isHindi = program.language === 'HINDI';
 
   return (
     <div
@@ -274,7 +274,7 @@ const ProgramManagement: React.FC = () => {
       program.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       program.description?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const isHindi = program.programId?.includes('-hi') || program.language === 'HINDI' || program.language === 'HINDI' || program.language === 'hi';
+    const isHindi = program.language === 'HINDI';
     const matchesLanguage = languageFilter === 'all' ||
       (languageFilter === 'HINDI' && isHindi) ||
       (languageFilter === 'ENGLISH' && !isHindi);
