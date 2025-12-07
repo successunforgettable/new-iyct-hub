@@ -203,6 +203,7 @@ interface QuickActionCardProps {
 const QuickActionCard: React.FC<QuickActionCardProps> = ({ title, subtitle, link, type }) => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [activeEnrollmentIndex, setActiveEnrollmentIndex] = React.useState(0);
 
   const getIcon = () => {
     switch (type) {
@@ -337,6 +338,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [activeEnrollmentIndex, setActiveEnrollmentIndex] = React.useState(0);
 
   // Fetch dashboard data
   const {
@@ -434,13 +436,13 @@ const DashboardPage: React.FC = () => {
                 Welcome back, {user?.fullName?.split(" ")[0] || "there"}!
               </p>
               <h2 className="text-2xl font-semibold mb-3" style={{ color: colors.textPrimary }}>
-                {enrolledPrograms[0].program?.name || enrolledPrograms[0].name}
+                {enrolledPrograms[activeEnrollmentIndex].program?.name || enrolledPrograms[activeEnrollmentIndex].name}
               </h2>
               <p className="mb-4" style={{ color: colors.textSecondary }}>
-                Week {enrolledPrograms[0].currentWeek || 1} of {enrolledPrograms[0].program?.durationWeeks || 10}
+                Week {enrolledPrograms[activeEnrollmentIndex].currentWeek || 1} of {enrolledPrograms[activeEnrollmentIndex].program?.durationWeeks || 10}
               </p>
               <button
-                onClick={() => navigate(`/programs/${enrolledPrograms[0].programId || enrolledPrograms[0].id}`)}
+                onClick={() => navigate(`/programs/${enrolledPrograms[activeEnrollmentIndex].programId || enrolledPrograms[activeEnrollmentIndex].id}`)}
                 className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105"
                 style={{ backgroundColor: colors.accent, color: colors.textPrimary }}
               >
@@ -449,11 +451,40 @@ const DashboardPage: React.FC = () => {
             </div>
             <div className="flex-shrink-0">
               <CircularProgress
-                percentage={enrolledPrograms[0].completionPercentage || 0}
+                percentage={enrolledPrograms[activeEnrollmentIndex].completionPercentage || 0}
                 size="lg"
               />
             </div>
           </div>
+          {/* Navigation dots and arrows */}
+          {enrolledPrograms.length > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-6 pt-6" style={{ borderTop: `1px solid ${colors.border}` }}>
+              <button
+                onClick={() => setActiveEnrollmentIndex(i => i > 0 ? i - 1 : enrolledPrograms.length - 1)}
+                className="p-2 rounded-full transition-colors hover:bg-opacity-80"
+                style={{ backgroundColor: colors.border }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke={colors.textPrimary} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <div className="flex gap-2">
+                {enrolledPrograms.map((_: any, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveEnrollmentIndex(idx)}
+                    className="w-3 h-3 rounded-full transition-all"
+                    style={{ backgroundColor: idx === activeEnrollmentIndex ? colors.accent : colors.border }}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => setActiveEnrollmentIndex(i => i < enrolledPrograms.length - 1 ? i + 1 : 0)}
+                className="p-2 rounded-full transition-colors hover:bg-opacity-80"
+                style={{ backgroundColor: colors.border }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke={colors.textPrimary} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -526,13 +557,13 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Overall Progress Circle - Takes 1 column */}
+        {/* All Programs Progress Circle - Takes 1 column */}
         <div
           className="p-6 rounded-xl flex flex-col items-center justify-center"
           style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}
         >
           <h2 className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-            Overall Progress
+            All Programs Progress
           </h2>
           <CircularProgress percentage={stats?.overallProgress || 0} size="lg" />
           <p className="mt-4 text-sm" style={{ color: colors.textMuted }}>
