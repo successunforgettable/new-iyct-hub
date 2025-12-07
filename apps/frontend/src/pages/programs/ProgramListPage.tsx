@@ -22,6 +22,25 @@ const colors = {
   textMuted: '#a0a0a0',
 };
 
+// Program Categories
+const CATEGORIES = [
+  { id: "all", name: "All Programs", matchCodes: [] as string[] },
+  { id: "incredible-you", name: "Incredible You", matchCodes: ["iy10", "iyf", "iyfeng", "iyfc", "iyfchindi"] },
+  { id: "coach-training", name: "Coach Training", matchCodes: ["iyct", "iycthindi", "iycthub", "ctffx", "cffx"] },
+  { id: "secret-millionaire", name: "Secret Millionaire", matchCodes: ["smb", "smbp", "smbcry"] },
+  { id: "speak-fortune", name: "Speak To Fortune", matchCodes: ["stfme", "stf2"] },
+  { id: "6-figure-author", name: "6 Figure Author", matchCodes: ["btf"] },
+];
+
+const getProgramCategory = (slug: string): string => {
+  for (const cat of CATEGORIES) {
+    if (cat.matchCodes.some(code => slug.toLowerCase().startsWith(code.toLowerCase()))) {
+      return cat.id;
+    }
+  }
+  return "incredible-you";
+};
+
 // Circular Progress Component
 const CircularProgress: React.FC<{ progress: number; size?: 'sm' | 'md' | 'lg' }> = ({ progress, size = 'md' }) => {
   const sizes = { sm: 60, md: 80, lg: 120 };
@@ -138,6 +157,7 @@ const ProgramCard: React.FC<{
 // Main Component
 const ProgramListPage: React.FC = () => {
   const navigate = useNavigate();
+  const [activeCategory, setActiveCategory] = React.useState("all");
 
   // Fetch all programs
   const { data: programs, isLoading: programsLoading, error: programsError } = useQuery({
@@ -167,6 +187,11 @@ const ProgramListPage: React.FC = () => {
   // Separate enrolled and available programs
   const enrolledPrograms = programs?.filter((p: any) => enrollmentMap[p.id || p.programId]) || [];
   const availablePrograms = programs?.filter((p: any) => !enrollmentMap[p.id || p.programId]) || [];
+
+  // Filter by category
+  const filteredPrograms = activeCategory === "all" 
+    ? availablePrograms 
+    : availablePrograms.filter((p: any) => getProgramCategory(p.slug) === activeCategory);
 
   if (programsLoading) {
     return (
@@ -217,14 +242,32 @@ const ProgramListPage: React.FC = () => {
         </div>
       )}
 
-      {/* Available Programs */}
+      {/* Category Tabs */}
       {availablePrograms.length > 0 && (
         <div>
+          <div className="flex flex-wrap gap-2 mb-6">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  backgroundColor: activeCategory === cat.id ? colors.accent : colors.card,
+                  color: activeCategory === cat.id ? '#000' : colors.textSecondary,
+                  border: `1px solid ${activeCategory === cat.id ? colors.accent : colors.border}`,
+                }}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+          
           <h2 className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-            Available Programs ({availablePrograms.length})
+            {activeCategory === "all" ? "All Programs" : CATEGORIES.find(c => c.id === activeCategory)?.name} ({filteredPrograms.length})
           </h2>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {availablePrograms.map((program: any) => (
+            {filteredPrograms.map((program: any) => (
               <ProgramCard
                 key={program.id || program.programId}
                 program={program}
