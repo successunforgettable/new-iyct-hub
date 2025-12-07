@@ -448,6 +448,13 @@ const DashboardPage: React.FC = () => {
               >
                 Resume Program →
               </button>
+              <button
+                onClick={() => navigate("/programs")}
+                className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 ml-3"
+                style={{ backgroundColor: colors.border, color: colors.textPrimary }}
+              >
+                Browse All Programs
+              </button>
             </div>
             <div className="flex-shrink-0">
               <CircularProgress

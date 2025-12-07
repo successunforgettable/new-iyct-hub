@@ -96,9 +96,9 @@ const ProgramCard: React.FC<{
   return (
     <div
       onClick={onClick}
-      className="p-6 rounded-xl cursor-pointer transition-all duration-200"
+      className="p-6 rounded-xl cursor-pointer transition-all duration-200 relative"
       style={{
-        backgroundColor: colors.card,
+        backgroundColor: isEnrolled ? colors.card : "#0d1520", opacity: isEnrolled ? 1 : 0.7,
         border: `1px solid ${colors.border}`,
       }}
       onMouseEnter={(e) => {
@@ -110,6 +110,16 @@ const ProgramCard: React.FC<{
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
+      {/* Language Badge */}
+      <span
+        className="absolute top-3 right-3 px-2 py-1 rounded text-xs font-bold"
+        style={{
+          backgroundColor: program.language === "HINDI" ? "#f0ad4e" : colors.accent,
+          color: program.language === "HINDI" ? "#000" : "#fff"
+        }}
+      >
+        {program.language === "HINDI" ? "HI" : "EN"}
+      </span>
       <h3 className="text-lg font-semibold mb-3 line-clamp-2" style={{ color: colors.textPrimary }}>
         {program.name}
       </h3>
@@ -138,14 +148,14 @@ const ProgramCard: React.FC<{
           </>
         ) : (
           <>
-            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: colors.border, color: colors.textMuted }}>
+            <span className="text-xs px-2 py-1 rounded-full flex items-center gap-1" style={{ backgroundColor: colors.border, color: colors.textMuted }}><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               {program.programType || 'Course'}
             </span>
             <button
               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               style={{ backgroundColor: colors.accent, color: colors.textPrimary }}
             >
-              View ▸
+              Enroll Now
             </button>
           </>
         )}
@@ -178,7 +188,7 @@ const ProgramListPage: React.FC = () => {
     const map: Record<string, any> = {};
     if (enrollments && Array.isArray(enrollments)) {
       enrollments.forEach((e: any) => {
-        map[e.programId] = e;
+        map[e.program?.id || e.programId] = e;
       });
     }
     return map;
@@ -189,8 +199,15 @@ const ProgramListPage: React.FC = () => {
   const availablePrograms = programs?.filter((p: any) => !enrollmentMap[p.id || p.programId]) || [];
 
   // Filter by category
+  const allProgramsSorted = [...(programs || [])].sort((a: any, b: any) => {
+    const aEnrolled = !!enrollmentMap[a.id || a.programId];
+    const bEnrolled = !!enrollmentMap[b.id || b.programId];
+    if (aEnrolled && !bEnrolled) return -1;
+    if (!aEnrolled && bEnrolled) return 1;
+    return 0;
+  });
   const filteredPrograms = activeCategory === "all" 
-    ? availablePrograms 
+    ? availablePrograms.sort((a: any, b: any) => a.name.localeCompare(b.name)) 
     : availablePrograms.filter((p: any) => getProgramCategory(p.slug) === activeCategory);
 
   if (programsLoading) {
@@ -271,7 +288,7 @@ const ProgramListPage: React.FC = () => {
               <ProgramCard
                 key={program.id || program.programId}
                 program={program}
-                onClick={() => navigate(`/programs/${program.id || program.programId}`)}
+                enrollment={enrollmentMap[program.id || program.programId]}                onClick={() => navigate(`/programs/${program.id || program.programId}`)}
               />
             ))}
           </div>
