@@ -37,7 +37,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#0a1628' }}>
       <TopNavigation />
-      <main>{children}</main>
+      <main className="pt-16">{children}</main>
     </div>
   );
 };

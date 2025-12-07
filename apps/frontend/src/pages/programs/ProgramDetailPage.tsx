@@ -3,20 +3,20 @@
 // Matches PHP hub program detail layout exactly
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 
 // Types
 interface Step {
   id: string;
+  stepNumber: number;
   title: string;
-  description: string;
-  order: number;
-  videoUrl?: string;
-  videoThumbnail?: string;
-  videoDuration?: string;
-  hasAssignment?: boolean;
+  contentType: string;
+  contentUrl: string | null;
+  durationMinutes: number | null;
+  isMandatory: boolean;
 }
+
 
 interface Week {
   id: string;
@@ -27,11 +27,16 @@ interface Week {
 
 interface Program {
   id: string;
-  title: string;
+  slug: string;
+  name: string;
   description: string;
-  thumbnailUrl?: string;
+  programType: string;
+  language: string;
+  durationWeeks: number;
+  imageUrl: string | null;
   weeks: Week[];
 }
+
 
 interface Enrollment {
   id: string;
@@ -43,7 +48,7 @@ interface Enrollment {
 }
 
 // Circular Progress Ring (for progress display)
-const ProgressRing: React.FC<{ progress: number; size?: number }> = ({ progress, size = 80 }) => {
+const _ProgressRing: React.FC<{ progress: number; size?: number }> = ({ progress, size = 80 }) => {
   const strokeWidth = size > 60 ? 8 : 6;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -135,7 +140,7 @@ const SectionTab: React.FC<{
 
 // Video Player Component
 const VideoPlayer: React.FC<{
-  videoUrl?: string;
+  videoUrl?: string | null;
   thumbnail?: string;
   duration?: string;
   currentStep: number;
@@ -216,8 +221,8 @@ const StepCard: React.FC<{
     return match ? match[1] : null;
   };
   
-  const vimeoId = step.videoUrl ? getVimeoId(step.videoUrl) : null;
-  const thumbnail = step.videoThumbnail || (vimeoId ? `https://vumbnail.com/${vimeoId}.jpg` : null);
+  const vimeoId = step.contentUrl ? getVimeoId(step.contentUrl) : null;
+  const thumbnail = (vimeoId ? `https://vumbnail.com/${vimeoId}.jpg` : null);
 
   return (
     <button
@@ -434,7 +439,7 @@ const ProgramDetailPage: React.FC = () => {
         <span className="text-gray-600">|</span>
         <span className="text-gray-400">Program</span>
         <span className="text-gray-600">&gt;</span>
-        <span className="text-gray-400">{program.title}</span>
+        <span className="text-gray-400">{program.name}</span>
         <span className="text-gray-600">&gt;</span>
         <span className="text-gray-400">{currentWeek?.title}</span>
         <span className="text-gray-600">&gt;</span>
@@ -445,8 +450,8 @@ const ProgramDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Program Logo Card */}
         <div className="bg-[#1a2332] rounded-xl p-6 flex items-center justify-center">
-          {program.thumbnailUrl ? (
-            <img src={program.thumbnailUrl} alt={program.title} className="max-h-24 object-contain" />
+          {program.imageUrl ? (
+            <img src={program.imageUrl} alt={program.name} className="max-h-24 object-contain" />
           ) : (
             <div className="text-center">
               <div className="text-2xl font-bold text-white">THE</div>
@@ -492,12 +497,12 @@ const ProgramDetailPage: React.FC = () => {
               {currentStep.title}
             </h2>
             <p className="text-gray-300 leading-relaxed mb-6">
-              {currentStep.description || 'Watch this video to learn more about this step.'}
+              'Watch this video to learn more about this step.'
             </p>
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 mb-4">
-              {currentStep.hasAssignment && (
+              {false && (
                 <button className="px-6 py-3 bg-[#5dade2] text-white rounded-lg font-medium hover:bg-[#4a9bc9] transition-colors">
                   Assignments
                 </button>
@@ -531,9 +536,9 @@ const ProgramDetailPage: React.FC = () => {
           {/* Right Column - Video Player */}
           <div>
             <VideoPlayer
-              videoUrl={currentStep.videoUrl}
-              thumbnail={currentStep.videoThumbnail}
-              duration={currentStep.videoDuration}
+              videoUrl={currentStep.contentUrl}
+              thumbnail={undefined}
+              duration={currentStep.durationMinutes ? `${currentStep.durationMinutes} min` : undefined}
               currentStep={activeStepIndex + 1}
               totalSteps={totalSteps}
             />
