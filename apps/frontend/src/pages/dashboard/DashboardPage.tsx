@@ -19,6 +19,7 @@ import {
   Cell,
 } from 'recharts';
 import { api } from '../../api/client';
+import { useAuthStore } from '../../store/authStore';
 
 // ============================================
 // DESIGN SYSTEM COLORS (from SESSION9 handoff)
@@ -201,6 +202,7 @@ interface QuickActionCardProps {
 
 const QuickActionCard: React.FC<QuickActionCardProps> = ({ title, subtitle, link, type }) => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   const getIcon = () => {
     switch (type) {
@@ -334,6 +336,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // ============================================
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   // Fetch dashboard data
   const {
@@ -418,6 +421,41 @@ const DashboardPage: React.FC = () => {
           Here's an overview of your learning journey
         </p>
       </div>
+
+      {/* Hero Section - Enrolled Program */}
+      {enrolledPrograms && enrolledPrograms.length > 0 && (
+        <div
+          className="mb-8 p-8 rounded-2xl"
+          style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}
+        >
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex-1">
+              <p className="text-lg mb-2" style={{ color: colors.textMuted }}>
+                Welcome back, {user?.fullName?.split(" ")[0] || "there"}!
+              </p>
+              <h2 className="text-2xl font-semibold mb-3" style={{ color: colors.textPrimary }}>
+                {enrolledPrograms[0].program?.name || enrolledPrograms[0].name}
+              </h2>
+              <p className="mb-4" style={{ color: colors.textSecondary }}>
+                Week {enrolledPrograms[0].currentWeek || 1} of {enrolledPrograms[0].program?.durationWeeks || 10}
+              </p>
+              <button
+                onClick={() => navigate(`/programs/${enrolledPrograms[0].programId || enrolledPrograms[0].id}`)}
+                className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105"
+                style={{ backgroundColor: colors.accent, color: colors.textPrimary }}
+              >
+                Resume Program →
+              </button>
+            </div>
+            <div className="flex-shrink-0">
+              <CircularProgress
+                percentage={enrolledPrograms[0].completionPercentage || 0}
+                size="lg"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
