@@ -1,0 +1,208 @@
+id,program_id,we_weekno,we_weekno_text,we_weektitle,we_no_ofstep,we_manual,we_start_message,we_end_message,we_certification_vdo,status,we_type
+1,1,0,Get Started,Get Started,4,,,,0,1,paid
+3,1,1,WEEK One,WEEK One,15,week-1.pdf,Wheel of Life,Badhaee ho! apane WEEK 1 pura kar liya,0,1,paid
+4,1,2,WEEK Two,WEEK Two,9,week-2.pdf,,Badhaee ho! apane WEEK 2 pura kar liya,0,1,paid
+5,1,3,WEEK Three,WEEK Three,11,week-3.pdf,,Badhaee ho! apane WEEK 3 pura kar liya,0,1,paid
+6,1,4,WEEK Four,WEEK Four,11,week-4.pdf,,Badhaee ho! apane WEEK 4 pura kar liya,0,1,paid
+7,1,5,Success Blueprint,Success Blueprint,7,week-5.pdf,,Badhaee ho! apane WEEK 5 pura kar liya,0,1,paid
+8,1,6,Certification,Certification,4,,CONGRATULATIONS!,,0,1,certificate
+9,1,7,Marketing Hub,Marketing Hub,1,,,,0,1,marketing
+10,10,0,Get Started,Get Started,3,,,,0,1,paid
+11,10,1,Week One,Week One,4,ctf_Week_1.pdf,,,0,1,paid
+12,10,2,Week Two,Week Two,2,ctf_Week_2.pdf,,,0,1,paid
+13,10,3,Week Three,Week Three,1,ctf_Week_3.pdf,,,0,1,paid
+14,10,4,Week Four,Week Four,2,ctf_Week_4.pdf,,,0,1,paid
+15,10,5,Week Five,Week Five,1,ctf_Week_5.pdf,,,0,1,paid
+16,10,6,Certificate,Certificate,1,,,,0,1,certificate
+17,3,1,Week One,Week One,9,week1.pdf,,,0,1,paid
+18,3,2,Week Two,Week Two,6,week2.pdf,,,0,1,paid
+19,3,3,Week Three,Week Three,4,week3.pdf,,,0,1,paid
+20,3,4,Week Four,Week Four,4,week4.pdf,,,0,1,paid
+21,3,5,Week Five,Week Five,6,week5.pdf,,,0,1,paid
+22,3,6,Week Six,Week Six,7,week6.pdf,,,0,1,paid
+23,3,7,Week Seven,Week Seven,8,week7.pdf,,,0,1,paid
+24,3,8,Week Eight,Week Eight,6,week8.pdf,,,0,1,paid
+25,3,9,Week Nine,Week Nine,4,week9.pdf,,,0,1,paid
+26,3,10,Week Ten,Week Ten,4,week10.pdf,,,0,1,paid
+28,9,1,Step One,Step One,2,,,,0,1,paid
+29,9,2,Step Two,Step Two,1,,,,0,1,paid
+30,9,3,Step Three,Step Three,2,,,,0,1,paid
+31,9,4,Step Four,Step Four,1,,,,0,1,paid
+32,14,0,Get Started,Get Started,1,,,,0,1,paid
+33,14,1,Week One,Week One,2,,,,0,1,paid
+34,14,2,Week Two,Week Two,1,,,,0,1,paid
+35,14,3,Week Three ,Week Three ,1,,,,0,1,paid
+36,14,4,Week Four,Week Four,2,,,,0,1,paid
+37,12,0,Get started    ,Get started    ,2,,,,0,1,paid
+38,12,1,Week One   ,Week One   ,2,,,,0,1,paid
+39,12,2,Week Two,Week Two,1,Week2.pdf,,,0,1,paid
+40,12,4,Week Four,Week Four,1,Week4.pdf,,,0,1,paid
+41,12,3,Week three ,Week three   ,1,,,,0,1,paid
+42,8,0,Get Started ,Get Started,2,,,,0,1,paid
+43,8,1,Week One,Week One,2,,,,0,1,paid
+44,8,3,Week Three,Week Three,2,,,,0,1,paid
+45,8,4,Week Four,Week Four,2,,,,0,1,paid
+46,8,2,Week Two,Week Two,1,,,,0,1,paid
+47,11,1,Week One,Week One,11,Week_1.pdf,,,0,1,paid
+48,11,2,Week Two,Week Two,8,Week_2.pdf,,,0,1,paid
+49,11,3,Week Three,Week Three,4,Week_3.pdf,,,0,1,paid
+50,11,4,Week Four,Week Four,6,Week_4.pdf,,,0,1,paid
+51,11,5,Week Five,Week Five,6,Week_5.pdf,,,0,1,paid
+52,11,6,Week Six,Week Six,10,Week_6.pdf,,,0,1,paid
+53,11,7,Week Seven,Week Seven,8,Week_7.pdf,,,0,1,paid
+54,11,8,Week Eight,Week Eight,6,Week_8.pdf,,,0,1,paid
+55,11,9,Week Nine,Week Nine,4,Week_9.pdf,,,0,1,paid
+56,11,10,Week Ten,Week Ten,2,Week_10.pdf,,,0,1,paid
+57,13,1,Week One    ,Week One    ,2,Week_1_The_Success_Codes.pdf,,,0,1,paid
+58,13,2,Week Two   ,Week Two   ,1,Niche.pdf,,,0,1,paid
+59,13,3,Week Three   ,Week Three   ,3,Book_X_Formula.pdf,,,0,1,paid
+60,13,4,Week Four,Week Four,1,,,,0,1,paid
+61,13,5,Week Five   ,Week Five   ,1,,,,0,1,paid
+62,13,6,Week Six   ,Week Six   ,1,,,,0,1,paid
+63,13,7,Week Seven   ,Week Seven   ,1,,,,0,1,paid
+64,13,8,Week Eight   ,Week Eight   ,1,,,,0,1,paid
+65,22,1,Part One    ,Part One    ,3,,,,0,1,paid
+66,22,2,Part Two   ,Part Two   ,3,,,,0,1,paid
+67,22,3,Part Three,Part Three,3,,,,0,1,paid
+68,22,4,Part Four   ,Part Four   ,1,,,,0,1,paid
+69,22,5,Part Five,Part Five,2,,,,0,1,paid
+70,22,6,Part Six   ,Part Six   ,1,,,,0,1,paid
+71,22,7,Part Seven,Part Seven,1,,,,0,1,paid
+72,6,0,Get started    ,Get started    ,4,,,,0,1,paid
+73,6,1,Inner DNA,Inner DNA,15,InnerDNA.pdf,,,0,1,paid
+74,6,2,Coding,Coding,12,Coding.pdf,,,0,1,paid
+75,6,3,Outcomes+,Outcomes+,6,Outcome-plus.pdf,,,0,1,paid
+76,6,4,Unleash You,Unleash You,7,Unleash-You.pdf,,,0,1,paid
+77,6,5,Success Blueprint,Success Blueprint,6,Success-Blueprint.pdf,,,0,1,paid
+78,7,0,Get Started,Get Started,3,,,,0,1,paid
+79,7,1,Week One,Week One,4,ctf_Week_1.pdf,,,0,1,paid
+80,7,2,Week Two,Week Two,1,ctf_Week_2.pdf,,,0,1,paid
+81,7,3,Week Three,Week Three,1,ctf_Week_3.pdf,,,0,1,paid
+82,7,4,Week Four,Week Four,1,ctf_Week_4.pdf,,,0,1,paid
+83,4,0,Get Started,Get Started,1,,,,0,1,paid
+84,4,1,Week One,Week One,2,,,,0,1,paid
+85,4,2,Week Two,Week Two,2,,,,0,1,paid
+86,4,3,Week Three,Week Three,2,,,,0,1,paid
+87,5,0,Get Started,Get Started,1,,,,0,1,paid
+88,5,1,Week One,Week One,5,Week1.pdf,,,0,1,paid
+89,5,2,Week Two,Week Two,2,Week2.pdf,,,0,1,paid
+90,5,3,Week Three,Week Three,3,Week3.pdf,,,0,1,paid
+91,5,4,Week Four,Week Four,2,Week4.pdf,,,0,1,paid
+92,5,5,Week Five,Week Five,1,Week5.pdf,,,0,1,paid
+108,20,1,Week One,Week One,9,week1.pdf,,,0,1,paid
+109,20,2,Week Two,Week Two,6,week2.pdf,,,0,1,paid
+110,20,3,Week Three,Week Three,4,week3.pdf,,,0,1,paid
+111,20,4,Week Four,Week Four,4,week4.pdf,,,0,1,paid
+112,20,5,Week Five,Week Five,6,week5.pdf,,,0,1,paid
+113,20,6,Week Six,Week Six,7,week6.pdf,,,0,1,paid
+114,20,7,Week Seven,Week Seven,8,week7.pdf,,,0,1,paid
+115,20,8,Week Eight,Week Eight,6,week8.pdf,,,0,1,paid
+116,20,9,Week Nine,Week Nine,4,week9.pdf,,,0,1,paid
+117,20,10,Week Ten,Week Ten,4,week10.pdf,,,0,1,paid
+132,6,6,Certificate,Certificate,4,,,,0,1,certificate
+134,5,6,Certification,Certification,1,,,,0,1,certificate
+135,5,7,Marketing Hub,Marketing Hub  ,1,,,,0,1,normal
+138,21,1,Week One,Week One,11,Week 1_CompressPdf.pdf,,,0,1,paid
+139,21,2,Week Two,Week Two,8,Week 2_CompressPdf.pdf,,,0,1,paid
+140,21,3,Week Three,Week Three,4,Week 3_CompressPdf.pdf,,,0,1,paid
+141,21,4,Week Four,Week Four,6,Week 4_CompressPdf.pdf,,,0,1,paid
+142,21,5,Week Five,Week Five,6,Week 5_CompressPdf.pdf,,,0,1,paid
+143,21,6,Week Six,Week Six,10,Week 6_CompressPdf.pdf,,,0,1,paid
+144,21,7,Week Seven,Week Seven,8,Week 7_CompressPdf.pdf,,,0,1,paid
+145,21,8,Week Eight,Week Eight,6,Week 8_CompressPdf.pdf,,,0,1,paid
+146,21,9,Week Nine,Week Nine,4,Week 9_CompressPdf.pdf,,,0,1,paid
+147,21,10,Week Ten,Week Ten,1,Week 10_CompressPdf.pdf,,,0,1,paid
+148,21,11,Certification,Certification,1,,,,0,1,certificate
+154,4,4,Certification,Certification,1,,,,0,1,certificate
+155,7,5,Certification,Certification,1,,,,0,1,certificate
+156,14,5,Certification,Certification,1,,,,0,1,paid
+161,13,10,Certification,Certification,1,,,,0,1,certificate
+162,12,5,Certification,Certification,1,,,,0,1,certificate
+164,13,9,Week Nine,Week Nine,6,,,,0,1,paid
+165,31,0,Inner DNA,Inner DNA,8,InnerDNA.pdf,,,0,1,paid
+166,31,1,Baselines,Baselines,8,Baseline.pdf,,,0,1,paid
+167,31,2,IPC,IPC,6,IPC.pdf,,,0,1,paid
+169,31,3,Coding,Coding,6,Coding.pdf,,,0,1,paid
+170,32,1,Outcomes+,Outcomes+,5,OUTCOMES.pdf,,,0,1,paid
+171,32,2,Unleash You,Unleash You,8,UNLEASH_YOU_0.pdf,,,0,1,paid
+172,32,3,Success Blueprint,Success Blueprint,6,Success-Blueprint.pdf,,,0,1,paid
+173,32,4,Certificate,Certificate,4,,,,0,1,certificate
+174,38,0,Inner DNA Test,Inner DNA Test,11,InnerDNA.pdf,,,0,1,paid
+175,38,1,Baselines,Baselines,7,Baseline.pdf,Wheel of Life,Badhaee ho! apane WEEK 1 pura kar liya,0,1,paid
+176,38,2,IPC,IPC,6,IPC.pdf,,Badhaee ho! apane WEEK 2 pura kar liya,0,1,paid
+177,39,1,Week One,Week One,11,OUTCOMES.pdf,,Badhaee ho! apane WEEK 3 pura kar liya,0,1,paid
+178,39,3,Success Blueprint,Success Blueprint,7,Success-Blueprint.pdf,,Badhaee ho! apane WEEK 5 pura kar liya,0,1,paid
+179,38,3,Coding,Coding,3,Coding.pdf,CONGRATULATIONS!,,0,1,paid
+181,39,4,Certification,Certification,4,,CONGRATULATIONS!,,0,1,certificate
+182,39,5,Marketing Hub,Marketing Hub,1,,,,0,1,marketing
+183,39,2,Week Two,Week Two,11,UNLEASH_YOU.pdf,,Badhaee ho! apane WEEK 4 pura kar liya,0,1,paid
+184,40,1,Week One,Week One,11,1705577244_3d2962d346e28d7ba45c.pdf,,,0,1,paid
+185,40,2,Week Two,Week Two,8,1705577300_7313b77f2f18f90b3437.pdf,,,0,1,paid
+186,40,3,Week Three,Week Three,4,1705577347_3be2a4281e20842fe48a.pdf,,,0,1,paid
+187,40,4,Week Four,Week Four,6,1705577399_850dc5134fbd30c5cc79.pdf,,,0,1,paid
+188,41,1,Week One,Week One,6,1705650351_8d0a4440198bbc3bdc57.pdf,,,0,1,paid
+189,41,2,Week Two,Week Two,10,1705650554_f65c94feb10c9aef27ec.pdf,,,0,1,paid
+190,41,3,Week Three,Week Three,8,1705650600_8150a375c33d92d20f07.pdf,,,0,1,paid
+191,41,4,Week Four,Week Four,6,1705650645_c03291398371c9705938.pdf,,,0,1,paid
+192,41,5,Week Five,Week Five,4,1705650686_4714884b974fb4822350.pdf,,,0,1,paid
+193,41,6,Week Six,Week Six,2,1705650728_373dfeb71ded3dd74f6c.pdf,,,0,1,paid
+194,42,1,Week One,Week One,9,1705665450_dc20504f60589deeeab3.pdf,,,0,1,paid
+195,42,2,Week Two,Week Two,6,1705665589_0fb477f42c7f18fc430c.pdf,,,0,1,paid
+196,42,3,Week Three,Week Three,4,1705665708_87aa18726801c885f885.pdf,,,0,1,paid
+197,42,4,Week Four,Week Four,4,1705665769_e0433842809b24b032b0.pdf,,,0,1,paid
+198,43,1,Week One,Week One,6,week1.pdf,,,0,1,paid
+199,43,2,Week Two,Week Two,7,week2.pdf,,,0,1,paid
+200,43,3,Week Three,Week Three,8,week3.pdf,,,0,1,paid
+201,43,4,Week Four,Week Four,6,week4.pdf,,,0,1,paid
+202,43,5,Week Five,Week Five,4,week5.pdf,,,0,1,paid
+203,43,6,Week Six,Week Six,4,week6.pdf,,,0,1,paid
+204,42,5,Certification,Certification,1,,,,0,1,paid
+205,44,1,Week One,Week One,9,1706684150_1f8125368a4bfa7e1902.pdf,,,0,1,paid
+206,44,2,Week Two,Week Two,6,1706684252_6735ddf1df846818e6b6.pdf,,,0,1,paid
+207,44,3,Week Three,Week Three,4,1706684252_d2ae6ad72782b9c3bd2a.pdf,,,0,1,paid
+208,44,4,Week Four,Week Four,4,1706684378_583815f78dc047cc9982.pdf,,,0,1,paid
+209,45,1,Week One,Week One,6,1706684471_7cbd1e7490a6c9e83e1f.pdf,,,0,1,paid
+210,45,2,Week Two,Week Two,7,1706693736_54858ac576fdbdfb3909.pdf,,,0,1,paid
+211,45,3,Week Three,Week Three,8,1706694382_d7fbd06dda553dcad899.pdf,,,0,1,paid
+212,45,4,Week Four,Week Four,6,1706694869_ffd7a35abf490c3f686e.pdf,,,0,1,paid
+213,45,5,Week Five,Week Five,4,1706694878_b10e73850610e01558ac.pdf,,,0,1,paid
+214,45,6,Week Six,Week Six,4,1706694975_d2ba3c3ff6b6fcaec829.pdf,,,0,1,paid
+215,40,5,Certificate,Certificate,1,,,,0,1,paid
+216,38,5,Marketing Hub,Marketing Hub,1,,,,0,1,marketing
+217,31,4,Certificate,Certificate,4,,,,0,1,certificate
+218,38,4,Certification,Certification,4,,CONGRATULATIONS!,,0,1,certificate
+219,46,0,Get Started,Get Started,1,,,,0,1,paid
+220,46,1,Week One,Week One,2,,,,0,1,paid
+221,46,2,Week Two,Week Two,2,,,,0,1,paid
+222,46,3,Week Three,Week Three,2,,,,0,1,paid
+223,46,4,Certification,Certification,1,,,,0,1,paid
+224,47,0,Get Started,Get Started,1,,,,0,1,paid
+225,47,1,Week One,Week One,2,,,,0,1,paid
+226,47,2,Week Two,Week Two,1,,,,0,1,paid
+227,47,3,Week Three ,Week Three ,1,,,,0,1,paid
+228,47,4,Week Four,Week Four,2,,,,0,1,paid
+229,47,5,Certification,Certification,1,,,,0,1,paid
+230,50,1,Week One,Week One,11,Week_1.pdf,,,0,1,paid
+231,50,2,Week Two,Week Two,8,Week_2.pdf,,,0,1,paid
+232,50,3,Week Three,Week Three,4,Week_3.pdf,,,0,1,paid
+233,50,4,Week Four,Week Four,6,Week_4.pdf,,,0,1,paid
+234,50,5,Week Five,Week Five,6,Week_5.pdf,,,0,1,paid
+235,50,6,Week Six,Week Six,10,Week_6.pdf,,,0,1,paid
+236,50,7,Week Seven,Week Seven,8,Week_8.pdf,,,0,1,paid
+237,50,8,Week Eight,Week Eight,6,Week_8.pdf,,,0,1,paid
+238,50,9,Week Nine,Week Nine,4,Week_9.pdf,,,0,1,paid
+239,50,10,Week Ten,Week Ten,2,Week_10.pdf,,,0,1,paid
+241,6,7,Marketing Hub,Marketing Hub,1,,,,0,1,marketing
+242,31,5,Marketing Hub,Marketing Hub,1,,,,0,1,marketing
+243,32,5,Marketing Hub,Marketing Hub,1,,,,0,1,marketing
+244,55,8,Marketing Hub,Marketing Hub  ,1,,,,0,1,marketing
+245,54,1,Week One,Week One,11,Week_1.pdf,,,0,1,paid
+246,54,2,Week Two,Week Two,8,Week_2.pdf,,,0,1,paid
+247,54,3,Week Three,Week Three,4,Week_3.pdf,,,0,1,paid
+248,54,4,Week Four,Week Four,6,Week_4.pdf,,,0,1,paid
+249,54,5,Week Five,Week Five,6,Week_5.pdf,,,0,1,paid
+250,54,6,Week Six,Week Six,10,Week_6.pdf,,,0,1,paid
+251,54,7,Week Seven,Week Seven,8,Week_7.pdf,,,0,1,paid
+252,54,8,Week Eight,Week Eight,6,Week_8.pdf,,,0,1,paid
+253,54,9,Week Nine,Week Nine,4,Week_9.pdf,,,0,1,paid
+254,54,10,Week Ten,Week Ten,2,Week_10.pdf,,,0,1,paid

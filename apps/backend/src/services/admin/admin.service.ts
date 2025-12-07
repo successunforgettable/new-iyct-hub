@@ -117,6 +117,7 @@ export const adminService = {
           completionRate: 0,
           revenue: price * enrollmentCount,
           createdAt: program.createdAt,
+          language: program.language,
         };
       })
     );

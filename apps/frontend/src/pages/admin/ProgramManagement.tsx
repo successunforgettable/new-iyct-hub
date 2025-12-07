@@ -40,28 +40,28 @@ const CATEGORIES = [
     name: 'Incredible You',
     description: 'Coach training & personal development programs',
     color: '#5dade2',
-    matchCodes: ['iy10', 'iy-', 'iyf'],
+    matchCodes: ['iy10', 'iyct', 'iyf', 'ciy10', 'htsm', 'ctffx', 'cffx'],
   },
   {
     id: 'secret-millionaire',
     name: 'Secret Millionaire Blueprint',
     description: 'Wealth building & money mindset programs',
     color: '#34c38f',
-    matchCodes: ['smb', 'ctf', 'wmr'],
+    matchCodes: ['smb', 'smbp', 'smbcry', 'mclg'],
   },
   {
     id: 'speak-to-fortune',
     name: 'Speak To Fortune',
     description: 'Public speaking mastery programs',
     color: '#f0ad4e',
-    matchCodes: ['stf'],
+    matchCodes: ['stf', 'stf2'],
   },
   {
     id: '6-figure-author',
     name: '6 Figure Author',
     description: 'Book writing & publishing system',
     color: '#e74c3c',
-    matchCodes: ['6fas'],
+    matchCodes: ['btf'],
   },
 ];
 
@@ -111,7 +111,7 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, categoryColor, onVie
   const totalWeeks = program.totalWeeks || program._count?.weeks || 0;
 
   // Detect language from programId
-  const isHindi = program.programId?.includes('-hi') || program.language === 'hi';
+  const isHindi = program.programId?.includes('-hi') || program.language === 'HINDI' || program.language === 'HINDI' || program.language === 'hi';
 
   return (
     <div
@@ -239,7 +239,7 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, categoryColor, onVie
 
 const ProgramManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [languageFilter, setLanguageFilter] = useState<'all' | 'en' | 'hi'>('all');
+  const [languageFilter, setLanguageFilter] = useState<'all' | 'ENGLISH' | 'HINDI'>('all');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(CATEGORIES.map(c => c.id))
   );
@@ -274,10 +274,10 @@ const ProgramManagement: React.FC = () => {
       program.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       program.description?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const isHindi = program.programId?.includes('-hi') || program.language === 'hi';
+    const isHindi = program.programId?.includes('-hi') || program.language === 'HINDI' || program.language === 'HINDI' || program.language === 'hi';
     const matchesLanguage = languageFilter === 'all' ||
-      (languageFilter === 'hi' && isHindi) ||
-      (languageFilter === 'en' && !isHindi);
+      (languageFilter === 'HINDI' && isHindi) ||
+      (languageFilter === 'ENGLISH' && !isHindi);
     
     return matchesSearch && matchesLanguage;
   });
@@ -401,8 +401,8 @@ const ProgramManagement: React.FC = () => {
           <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: colors.border }}>
             {[
               { value: 'all', label: 'All' },
-              { value: 'en', label: 'English' },
-              { value: 'hi', label: 'Hindi' },
+              { value: 'ENGLISH', label: 'English' },
+              { value: 'HINDI', label: 'Hindi' },
             ].map(option => (
               <button
                 key={option.value}

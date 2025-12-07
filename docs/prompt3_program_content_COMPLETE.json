@@ -1,0 +1,156 @@
+{
+  "export_info": {
+    "extracted_from": "AWS Lightsail MySQL Database (innerdna)",
+    "extraction_date": "2025-12-05",
+    "server_ip": "13.127.15.193",
+    "status": "COMPLETE - All program content extracted from live database"
+  },
+
+  "summary": {
+    "total_programs": 49,
+    "total_weeks": 207,
+    "total_steps": 933,
+    "languages": ["ENGLISH", "HINDI"]
+  },
+
+  "programs": [
+    {"id": 1, "code": "IYCTHINDI", "title": "The Incredible You Mind Hacker Coach Training In Hindi", "language": "HINDI", "weeks": 7, "type": "HUB"},
+    {"id": 3, "code": "IY10HINDI", "title": "The Incredible You 10 Week Coaching In Hindi", "language": "HINDI", "weeks": 10, "type": "HUB"},
+    {"id": 4, "code": "IYFC", "title": "The Incredible You Foundation Hindi", "language": "HINDI", "weeks": 4, "type": "HUB"},
+    {"id": 5, "code": "STFME", "title": "Speak To A Fortune Mastermind Edition", "language": "ENGLISH", "weeks": 7, "type": "HUB"},
+    {"id": 6, "code": "IYCTHUB", "title": "The Incredible You Mind Hacker Coach Training", "language": "ENGLISH", "weeks": 7, "type": "HUB"},
+    {"id": 7, "code": "CTFFX", "title": "Coach to a Fortune Foundation X", "language": "ENGLISH", "weeks": 5, "type": "HUB"},
+    {"id": 8, "code": "SMBP", "title": "4 Week Incredible Wealth Mindset Reset", "language": "ENGLISH", "weeks": 4, "type": "HUB"},
+    {"id": 9, "code": "SMB", "title": "SMB Money Management System", "language": "ENGLISH", "weeks": 4, "type": "HUB"},
+    {"id": 10, "code": "CFFX", "title": "Coach to a Fortune Foundation X In Hindi", "language": "HINDI", "weeks": 6, "type": "HUB"},
+    {"id": 11, "code": "IY10", "title": "The Incredible You 10 week coaching", "language": "ENGLISH", "weeks": 10, "type": "HUB"},
+    {"id": 12, "code": "STF2.0", "title": "Speak To a Fortune 2.0 foundation", "language": "ENGLISH", "weeks": 5, "type": "HUB"},
+    {"id": 13, "code": "BTF", "title": "The Incredible 6 Figure Author System", "language": "ENGLISH", "weeks": 10, "type": "HUB"},
+    {"id": 14, "code": "IYF", "title": "The Incredible You Foundation", "language": "ENGLISH", "weeks": 5, "type": "HUB"},
+    {"id": 20, "code": "IY10HINDIDEMO", "title": "The Incredible You 10 Week Coaching In Hindi Demo", "language": "HINDI", "weeks": 10, "type": "FREE"},
+    {"id": 21, "code": "IY10DEMO", "title": "The Incredible You 10 week coaching Demo", "language": "ENGLISH", "weeks": 11, "type": "FREE"},
+    {"id": 22, "code": "IYCTPRE", "title": "The Incredible You Coach Training Pre Study", "language": "ENGLISH", "weeks": 7, "type": "HUB"},
+    {"id": 23, "code": "HINDIPRACT", "title": "Practice Tool", "language": "HINDI", "weeks": 0, "type": "HUB"},
+    {"id": 24, "code": "ENGLISHPRACT", "title": "Practice Tool", "language": "ENGLISH", "weeks": 0, "type": "HUB"},
+    {"id": 25, "code": "SMBCRY", "title": "The Secret Millionaire Blueprint", "language": "ENGLISH", "weeks": 5, "type": "OUTSIDE"},
+    {"id": 26, "code": "MCLG", "title": "The Incredible You Millionaire Challenge", "language": "ENGLISH", "weeks": 5, "type": "HUB"},
+    {"id": 27, "code": "PERASS", "title": "Personality Assessment Full Report", "language": "ENGLISH", "weeks": 0, "type": "OUTSIDE"},
+    {"id": 31, "code": "IYCTLEVEL1", "title": "The Incredible You Coach Training Level 1 Program", "language": "ENGLISH", "weeks": 5, "type": "HUB"},
+    {"id": 32, "code": "IYCTLEVEL2", "title": "The Incredible You Coach Training Level 2 Program", "language": "ENGLISH", "weeks": 5, "type": "HUB"},
+    {"id": 37, "code": "IYCTLEVEL1", "title": "The Incredible You Mind Hacker Coach Training(Level 1)", "language": "ENGLISH", "weeks": 6, "type": "HUB"},
+    {"id": 38, "code": "IYCTHINDILEVEL1", "title": "The Incredible You Mind Hacker Coach Training In Hindi Level 1", "language": "HINDI", "weeks": 5, "type": "HUB"},
+    {"id": 39, "code": "IYCTHINDILEVEL2", "title": "The Incredible You Mind Hacker Coach Training In Hindi Level 2", "language": "HINDI", "weeks": 6, "type": "HUB"},
+    {"id": 40, "code": "IY10LEVEL1", "title": "The Incredible You 10 week coaching Level 1", "language": "ENGLISH", "weeks": 5, "type": "HUB"},
+    {"id": 41, "code": "IY10LEVEL2", "title": "The Incredible You 10 week coaching Level 2", "language": "ENGLISH", "weeks": 6, "type": "HUB"},
+    {"id": 42, "code": "IY10HINDILEVEL1", "title": "The Incredible You 10 Week Coaching In Hindi Level 1", "language": "HINDI", "weeks": 5, "type": "HUB"},
+    {"id": 43, "code": "IY10HINDILEVEL2", "title": "The Incredible You 10 Week Coaching In Hindi Level 2", "language": "HINDI", "weeks": 6, "type": "HUB"},
+    {"id": 50, "code": "CIY10", "title": "Corporate The Incredible You 10 week coaching", "language": "ENGLISH", "weeks": 10, "type": "HUB"},
+    {"id": 51, "code": "PERASSENG", "title": "INNER DNA Assessment LINK", "language": "ENGLISH", "weeks": 0, "type": "HUB"},
+    {"id": 52, "code": "PERASSHIN", "title": "INNER DNA Assessment LINK In Hindi", "language": "HINDI", "weeks": 0, "type": "HUB"},
+    {"id": 53, "code": "HTSM", "title": "High Ticket Sales Mastery", "language": "ENGLISH", "weeks": 0, "type": "HUB"},
+    {"id": 54, "code": "IY10CX", "title": "The Incredible You CX", "language": "ENGLISH", "weeks": 10, "type": "HUB"}
+  ],
+
+  "week_types": {
+    "paid": "Regular paid content week",
+    "certificate": "Certification week",
+    "marketing": "Marketing Hub access",
+    "normal": "Standard week"
+  },
+
+  "activity_types": {
+    "0": "Video only (no activity)",
+    "1": "Inner DNA Test",
+    "2": "Personality Assessment",
+    "3": "Wheel of Life",
+    "4": "Discover Baselines",
+    "8": "Coding Tool",
+    "11": "Decision Making Wheel",
+    "12": "Define Outcome",
+    "17": "Video with Discussion/Debrief",
+    "18": "Certification",
+    "19": "Registration Link",
+    "20": "Niche Discovery (BTF)",
+    "21": "Training Schedule",
+    "24": "Hub/Form Activity"
+  },
+
+  "sample_steps_by_program": {
+    "IYCTHINDI_week0": [
+      {"step": 1, "title": "INNER DNA TEST", "activity": 1},
+      {"step": 2, "title": "SAFAR KI SHURUAAT", "vimeo_id": "742591360", "duration": "09:33"},
+      {"step": 3, "title": "INNER DNA TEST KO BEHTAR SE SAMJHE", "vimeo_id": "742590583", "duration": "41:28"},
+      {"step": 4, "title": "ACTIVITY", "activity": 17}
+    ],
+    "IYCTHINDI_week1": [
+      {"step": 1, "title": "CLIENT KA INTRODUCTION", "vimeo_id": "742591179", "duration": "07:49"},
+      {"step": 2, "title": "WHEEL OF LIFE (ACTIVITY)", "vimeo_id": "742591084", "duration": "04:13", "activity": 3},
+      {"step": 3, "title": "WHEEL OF LIFE (AAPKA STHITI KA WHEEL OF LIFE KE SATH CONNECTION)", "vimeo_id": "742590363", "duration": "15:41"},
+      {"step": 4, "title": "WHEEL OF LIFE (DEBRIEF)", "vimeo_id": "742590214", "duration": "08:40"},
+      {"step": 5, "title": "INTRODUCTION TO DISCOVER YOUR INNER DNA", "vimeo_id": "742589943", "duration": "25:56"},
+      {"step": 6, "title": "DISCOVER YOUR INNER DNA", "vimeo_id": "742589795", "duration": "09:17"},
+      {"step": 7, "title": "THE SPEECH (ACTIVITY)", "vimeo_id": "742589411", "duration": "18:40"},
+      {"step": 8, "title": "THE SPEECH (DEBRIEF)", "vimeo_id": "742589621", "duration": "10:29"},
+      {"step": 9, "title": "DISCOVER YOUR BASELINES (ACTIVITY)", "activity": 4},
+      {"step": 10, "title": "DISCOVER YOUR BASELINES (DEBRIEF)", "vimeo_id": "742589294", "duration": "08:32"},
+      {"step": 11, "title": "BASELINES EXPRESSION & NON-EXPRESSION ACTIVITY INSTRUCTIONS", "vimeo_id": "742589243", "duration": "01:31"},
+      {"step": 12, "title": "BASELINE EXPRESSION (ACTIVITY & DEBRIEF)", "vimeo_id": "742588924", "duration": "20:24"},
+      {"step": 13, "title": "BASELINE NON-EXPRESSION (ACTIVITY & DEBRIEF)", "vimeo_id": "742588725", "duration": "12:17"},
+      {"step": 14, "title": "THE CHANGE (ACTIVITY)", "vimeo_id": "742589176", "duration": "05:42"},
+      {"step": 15, "title": "THE CHANGE (DEBRIEF & CONCLUSION)", "vimeo_id": "742588628", "duration": "07:49"}
+    ],
+    "IYCTHUB_week0": [
+      {"step": 1, "title": "WHAT COACHING REALLY IS?", "vimeo_id": "742211064", "duration": "06:13"},
+      {"step": 2, "title": "WHAT IS YOUR VISION AND MISSION?", "vimeo_id": "742210982", "duration": "09:12"},
+      {"step": 3, "title": "THE POWER OF IMAGINATION", "vimeo_id": "742211132", "duration": "12:45"},
+      {"step": 4, "title": "INNER DNA TEST", "activity": 1}
+    ],
+    "IYCTHUB_week1_inner_dna": [
+      {"step": 1, "title": "THE WELCOME SESSION", "vimeo_id": "742213307", "duration": "16:19"},
+      {"step": 2, "title": "THE WELCOME SESSION DEBRIEF & THE INNER DNA TEST DEBRIEF", "vimeo_id": "742213518", "duration": "16:51"},
+      {"step": 3, "title": "THE WHEEL OF LIFE", "activity": 3},
+      {"step": 4, "title": "WHEEL OF LIFE DEBRIEF", "vimeo_id": "742213653", "duration": "29:08"},
+      {"step": 5, "title": "INNER DNA", "activity": 17},
+      {"step": 6, "title": "THE SPEECH", "activity": 17},
+      {"step": 7, "title": "THE SPEECH DEBRIEF", "vimeo_id": "742213817", "duration": "13:00"},
+      {"step": 8, "title": "DISCOVER YOUR BASELINES", "activity": 4},
+      {"step": 9, "title": "DISCOVER YOUR BASELINES DEBRIEF", "vimeo_id": "742213932", "duration": "30:17"},
+      {"step": 10, "title": "BASELINES EXPRESSION", "vimeo_id": "742214131", "duration": "39:35"},
+      {"step": 11, "title": "BASELINES EXPRESSION DEBRIEF", "vimeo_id": "742214448", "duration": "24:30"},
+      {"step": 12, "title": "BASELINES NON-EXPRESSION ACTIVITY", "vimeo_id": "742214697", "duration": "22:05"},
+      {"step": 13, "title": "BASELINES NON-EXPRESSION DEBRIEF", "activity": 17},
+      {"step": 14, "title": "THE CHANGE", "vimeo_id": "742214926", "duration": "20:18"},
+      {"step": 15, "title": "THE CHANGE DEBRIEF", "activity": 17}
+    ]
+  },
+
+  "csv_exports_location": {
+    "server_path": "/tmp/",
+    "files": [
+      {"name": "programs_export.csv", "rows": 49, "size": "26 KB"},
+      {"name": "weeks_export.csv", "rows": 207, "size": "17 KB"},
+      {"name": "steps_export.csv", "rows": 933, "size": "63 KB"},
+      {"name": "personality_export.csv", "rows": 4, "size": "132 bytes"}
+    ]
+  },
+
+  "vimeo_video_samples": [
+    {"id": "742211064", "title": "WHAT COACHING REALLY IS?", "duration": "06:13"},
+    {"id": "742591360", "title": "SAFAR KI SHURUAAT", "duration": "09:33"},
+    {"id": "742590583", "title": "INNER DNA TEST KO BEHTAR SE SAMJHE", "duration": "41:28"},
+    {"id": "742213307", "title": "THE WELCOME SESSION", "duration": "16:19"},
+    {"id": "783936774", "title": "10-saptah ki yatra mein aapka swagat hai", "duration": "06:28"},
+    {"id": "742263102", "title": "WHAT ARE POWERLEAPS", "duration": "15:26"}
+  ],
+
+  "program_categories": {
+    "coach_training": ["IYCTHINDI", "IYCTHUB", "IYCTLEVEL1", "IYCTLEVEL2", "IYCTHINDILEVEL1", "IYCTHINDILEVEL2", "IYCTPRE"],
+    "10_week_coaching": ["IY10", "IY10HINDI", "IY10LEVEL1", "IY10LEVEL2", "IY10HINDILEVEL1", "IY10HINDILEVEL2", "IY10DEMO", "IY10HINDIDEMO", "CIY10", "IY10CX"],
+    "foundation": ["IYF", "IYFC", "CTFFX", "CFFX"],
+    "speak_to_fortune": ["STFME", "STF2.0"],
+    "wealth_programs": ["SMB", "SMBP", "SMBCRY", "MCLG"],
+    "author_program": ["BTF"],
+    "personality": ["PERASS", "PERASSENG", "PERASSHIN"],
+    "practice_tools": ["HINDIPRACT", "ENGLISHPRACT"]
+  }
+}

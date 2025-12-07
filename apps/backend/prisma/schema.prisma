@@ -1,7 +1,3 @@
-// Prisma Schema - IYCT Platform
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2
-// Consolidates 6 MySQL databases into 1 PostgreSQL database
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,9 +7,570 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================================
-// ENUMS
-// ============================================================================
+model User {
+  id                    String                  @id @default(uuid())
+  email                 String                  @unique
+  passwordHash          String?
+  fullName              String
+  userRole              UserRole
+  phone                 String?
+  address               String?
+  city                  String?
+  country               String?
+  timezone              String                  @default("UTC")
+  language              String                  @default("en")
+  currency              String                  @default("USD")
+  googleId              String?                 @unique
+  facebookId            String?                 @unique
+  oauthProvider         String?
+  emailVerified         Boolean                 @default(false)
+  emailVerifiedAt       DateTime?
+  consentGiven          Boolean                 @default(false)
+  consentTimestamp      DateTime?
+  consentIp             String?
+  dataRetentionDays     Int                     @default(365)
+  scheduledDeletionDate DateTime?
+  parentCoachId         String?
+  status                UserStatus              @default(ACTIVE)
+  lastLoginAt           DateTime?
+  lastLoginIp           String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  adminRoles            AdminRole[]
+  aiGeneratedContent    AiGeneratedContent[]
+  auditLogs             AuditLog[]
+  buzzMoments           BuzzMoment[]
+  certifications        Certification[]
+  files                 File[]
+  gdprRequests          GdprDataRequest[]
+  innerDnaResult        InnerDnaResult?
+  invoices              Invoice[]
+  kycDocuments          KycDocument[]
+  payments              Payment[]
+  userBaselines         UserBaseline[]
+  userNCodes            UserNCode[]
+  userOutcomes          UserOutcome[]
+  programEnrollments    UserProgramEnrollment[]
+  sessions              UserSession[]
+  stepProgress          UserStepProgress[]
+  parentCoach           User?                   @relation("CoachToClients", fields: [parentCoachId], references: [id])
+  clients               User[]                  @relation("CoachToClients")
+  wheelOfLife           WheelOfLife[]
+
+  @@index([email])
+  @@index([googleId])
+  @@index([userRole])
+  @@index([status])
+  @@index([parentCoachId])
+  @@map("users")
+}
+
+model AdminRole {
+  id          String   @id @default(uuid())
+  userId      String
+  roleName    String
+  permissions Json
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleName])
+  @@map("admin_roles")
+}
+
+model UserSession {
+  id           String   @id @default(uuid())
+  userId       String
+  jwtToken     String
+  refreshToken String?
+  expiresAt    DateTime
+  deviceInfo   Json?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([jwtToken])
+  @@map("user_sessions")
+}
+
+model Program {
+  id                    String                  @id @default(uuid())
+  slug                  String                  @unique
+  name                  String
+  description           String?
+  programType           ProgramType
+  language              String                  @default("en")
+  welcomeMessage        String?
+  termsConditions       String?
+  supportEmail          String?
+  durationWeeks         Int?
+  isPublished           Boolean                 @default(false)
+  requiresCertification Boolean                 @default(false)
+  basePriceUsd          Decimal?                @db.Decimal(10, 2)
+  basePriceInr          Decimal?                @db.Decimal(10, 2)
+  basePriceAed          Decimal?                @db.Decimal(10, 2)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  imageUrl              String?
+  certifications        Certification[]
+  pricingPlans          PricingPlan[]
+  weeks                 ProgramWeek[]
+  enrollments           UserProgramEnrollment[]
+
+  @@index([programType])
+  @@index([language])
+  @@index([isPublished])
+  @@map("programs")
+}
+
+model ProgramWeek {
+  id              String        @id @default(uuid())
+  programId       String
+  weekNumber      Int
+  title           String
+  description     String?
+  objectives      String[]
+  isLocked        Boolean       @default(false)
+  unlockAfterWeek Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  imageUrl        String?
+  steps           ProgramStep[]
+  program         Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, weekNumber])
+  @@index([programId])
+  @@map("program_weeks")
+}
+
+model ProgramStep {
+  id              String             @id @default(uuid())
+  weekId          String
+  stepNumber      Int
+  title           String
+  contentType     String?
+  contentUrl      String?
+  contentHtml     String?
+  durationMinutes Int?
+  isMandatory     Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  assignments     Assignment[]
+  week            ProgramWeek        @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  userProgress    UserStepProgress[]
+
+  @@unique([weekId, stepNumber])
+  @@index([weekId])
+  @@map("program_steps")
+}
+
+model Assignment {
+  id               String      @id @default(uuid())
+  stepId           String
+  title            String
+  instructions     String
+  submissionType   String?
+  maxFileSizeMb    Int?
+  allowedFileTypes String[]
+  usesAiGeneration Boolean     @default(false)
+  aiPromptTemplate String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  step             ProgramStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@map("assignments")
+}
+
+model UserProgramEnrollment {
+  id                   String             @id @default(uuid())
+  userId               String
+  programId            String
+  enrolledAt           DateTime           @default(now())
+  enrollmentStatus     EnrollmentStatus   @default(ACTIVE)
+  paymentStatus        PaymentStatus      @default(FREE)
+  accessGrantedAt      DateTime           @default(now())
+  accessExpiresAt      DateTime?
+  completionPercentage Int                @default(0)
+  currentWeek          Int                @default(1)
+  lastActivityAt       DateTime?
+  completedAt          DateTime?
+  updatedAt            DateTime           @updatedAt
+  payments             Payment[]
+  program              Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stepProgress         UserStepProgress[]
+
+  @@unique([userId, programId])
+  @@index([userId])
+  @@index([programId])
+  @@index([enrollmentStatus])
+  @@map("user_program_enrollment")
+}
+
+model UserStepProgress {
+  id                 String                @id @default(uuid())
+  userId             String
+  stepId             String
+  enrollmentId       String
+  status             String                @default("not_started")
+  startedAt          DateTime?
+  completedAt        DateTime?
+  timeSpentSeconds   Int                   @default(0)
+  submissionText     String?
+  submissionFileUrl  String?
+  submissionMetadata Json?
+  aiGeneratedContent Json?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  enrollment         UserProgramEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  step               ProgramStep           @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stepId])
+  @@index([userId])
+  @@index([stepId])
+  @@map("user_step_progress")
+}
+
+model InnerDnaResult {
+  id              String         @id @default(uuid())
+  userId          String         @unique
+  personalityType Int?
+  wing            String?
+  subtype         String?
+  blindSubtype    String?
+  states          Json?
+  innerDnaUserId  String?
+  rawResponse     Json?
+  testCompletedAt DateTime?
+  testVersion     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userBaselines   UserBaseline[]
+  userNCodes      UserNCode[]
+  wheelOfLife     WheelOfLife[]
+
+  @@index([personalityType])
+  @@map("inner_dna_results")
+}
+
+model AiGeneratedContent {
+  id                 String    @id @default(uuid())
+  userId             String
+  contentType        String
+  contentSubtype     String?
+  personalityContext Json?
+  inputData          Json?
+  promptTemplate     String?
+  generatedContent   String
+  formattedHtml      String?
+  modelVersion       String?
+  tokensUsed         Int?
+  generationTimeMs   Int?
+  costUsd            Decimal?  @db.Decimal(10, 4)
+  isCached           Boolean   @default(true)
+  expiresAt          DateTime?
+  cacheKey           String?   @unique
+  userEdited         Boolean   @default(false)
+  userApproved       Boolean   @default(false)
+  regenerationCount  Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([contentType])
+  @@index([cacheKey])
+  @@index([expiresAt])
+  @@map("ai_generated_content")
+}
+
+model WheelOfLife {
+  id             String          @id @default(uuid())
+  userId         String
+  innerDnaId     String?
+  health         Int
+  friendsFamily  Int
+  funRecreation  Int
+  wealth         Int
+  relationship   Int
+  learningGrowth Int
+  possessions    Int
+  career         Int
+  aiInsightsId   String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  innerDna       InnerDnaResult? @relation(fields: [innerDnaId], references: [id])
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("wheel_of_life")
+}
+
+model UserBaseline {
+  id                  String          @id @default(uuid())
+  userId              String
+  innerDnaId          String?
+  baselineWords       String[]
+  wordRankings        Int[]
+  baselineExpressions Json?
+  expressionRatings   Json?
+  aiVisionsId         String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  innerDna            InnerDnaResult? @relation(fields: [innerDnaId], references: [id])
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_baselines")
+}
+
+model UserNCode {
+  id                 String          @id @default(uuid())
+  userId             String
+  innerDnaId         String?
+  ncodeStatement     String
+  ncodeRanking       Int?
+  ecodeStatement     String
+  lifeAreaImpacts    Json?
+  fiveYearPrediction String?
+  aiPredictionId     String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  innerDna           InnerDnaResult? @relation(fields: [innerDnaId], references: [id])
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_ncodes")
+}
+
+model UserOutcome {
+  id                 String   @id @default(uuid())
+  userId             String
+  outcomeTitle       String
+  outcomeDescription String?
+  outcomeRank        Int
+  incredSteps        Json?
+  aiIncredId         String?
+  challenges         Json?
+  powerLeaps         Json?
+  aiChallengesId     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_outcomes")
+}
+
+model BuzzMoment {
+  id                String   @id @default(uuid())
+  userId            String
+  momentDescription String
+  isAiSuggested     Boolean  @default(false)
+  aiContentId       String?
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("buzz_moments")
+}
+
+model PricingPlan {
+  id                   String      @id @default(uuid())
+  programId            String
+  planName             String
+  paymentType          PaymentType
+  priceUsd             Decimal?    @db.Decimal(10, 2)
+  priceInr             Decimal?    @db.Decimal(10, 2)
+  priceAed             Decimal?    @db.Decimal(10, 2)
+  installmentCount     Int?
+  installmentFrequency String?
+  isActive             Boolean     @default(true)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  payments             Payment[]
+  program              Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId])
+  @@map("pricing_plans")
+}
+
+model Payment {
+  id                   String                 @id @default(uuid())
+  userId               String
+  enrollmentId         String?
+  planId               String?
+  amount               Decimal                @db.Decimal(10, 2)
+  currency             String
+  paymentGateway       PaymentGateway
+  gatewayTransactionId String?
+  gatewayPaymentMethod String?
+  gatewayResponse      Json?
+  status               TransactionStatus      @default(PENDING)
+  taxRate              Decimal?               @db.Decimal(5, 2)
+  taxAmount            Decimal?               @db.Decimal(10, 2)
+  totalAmount          Decimal                @db.Decimal(10, 2)
+  isInstallment        Boolean                @default(false)
+  installmentNumber    Int?
+  totalInstallments    Int?
+  paymentMetadata      Json?
+  ipAddress            String?
+  initiatedAt          DateTime               @default(now())
+  completedAt          DateTime?
+  failedAt             DateTime?
+  invoices             Invoice[]
+  enrollment           UserProgramEnrollment? @relation(fields: [enrollmentId], references: [id])
+  plan                 PricingPlan?           @relation(fields: [planId], references: [id])
+  user                 User                   @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([enrollmentId])
+  @@index([gatewayTransactionId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Invoice {
+  id             String    @id @default(uuid())
+  paymentId      String?
+  userId         String
+  invoiceNumber  String    @unique
+  invoiceDate    DateTime
+  dueDate        DateTime?
+  pdfUrl         String?
+  pdfGeneratedAt DateTime?
+  createdAt      DateTime  @default(now())
+  payment        Payment?  @relation(fields: [paymentId], references: [id])
+  user           User      @relation(fields: [userId], references: [id])
+
+  @@index([invoiceNumber])
+  @@index([userId])
+  @@map("invoices")
+}
+
+model Certification {
+  id                  String               @id @default(uuid())
+  userId              String
+  programId           String?
+  certificationType   String?
+  certificationNumber String?              @unique
+  status              CertificationStatus  @default(PENDING)
+  certificatePdfUrl   String?
+  certificateIssuedAt DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  videos              CertificationVideo[]
+  program             Program?             @relation(fields: [programId], references: [id])
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("certifications")
+}
+
+model CertificationVideo {
+  id                String              @id @default(uuid())
+  certificationId   String
+  videoUrl          String
+  videoThumbnailUrl String?
+  durationSeconds   Int?
+  status            CertificationStatus @default(PENDING)
+  reviewerId        String?
+  reviewNotes       String?
+  reviewedAt        DateTime?
+  aiAnalysis        Json?
+  uploadedAt        DateTime            @default(now())
+  certification     Certification       @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+
+  @@index([certificationId])
+  @@index([status])
+  @@map("certification_videos")
+}
+
+model KycDocument {
+  id               String    @id @default(uuid())
+  userId           String
+  documentType     String
+  documentNumber   String?
+  frontImageUrl    String?
+  backImageUrl     String?
+  selfieUrl        String?
+  status           KYCStatus @default(NOT_STARTED)
+  verifiedById     String?
+  verifiedAt       DateTime?
+  rejectionReason  String?
+  consentGiven     Boolean   @default(false)
+  consentTimestamp DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("kyc_documents")
+}
+
+model AuditLog {
+  id               String   @id @default(uuid())
+  userId           String?
+  adminUserId      String?
+  eventType        String
+  eventCategory    String?
+  eventDescription String?
+  resourceType     String?
+  resourceId       String?
+  changes          Json?
+  metadata         Json?
+  ipAddress        String?
+  userAgent        String?
+  requestId        String?
+  createdAt        DateTime @default(now())
+  user             User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model GdprDataRequest {
+  id            String    @id @default(uuid())
+  userId        String
+  requestType   String
+  requestStatus String    @default("pending")
+  processedById String?
+  processedAt   DateTime?
+  exportFileUrl String?
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([requestStatus])
+  @@map("gdpr_data_requests")
+}
+
+model File {
+  id              String    @id @default(uuid())
+  userId          String?
+  fileName        String
+  filePath        String
+  fileSizeBytes   BigInt?
+  mimeType        String?
+  storageProvider String    @default("aws_s3")
+  storageKey      String?
+  isPublic        Boolean   @default(false)
+  expiresAt       DateTime?
+  uploadedById    String?
+  fileCategory    String?
+  createdAt       DateTime  @default(now())
+  user            User?     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([fileCategory])
+  @@map("files")
+}
 
 enum UserRole {
   SUPERADMIN
@@ -30,14 +587,10 @@ enum UserStatus {
 }
 
 enum ProgramType {
-  AKU
-  BTF
-  SMB
-  STF
-  CERTIFICATION
-  PERSONALITY
+  HUB
+  FREE
+  OUTSIDE
 }
-
 enum EnrollmentStatus {
   ACTIVE
   COMPLETED
@@ -83,818 +636,4 @@ enum KYCStatus {
   SUBMITTED
   VERIFIED
   REJECTED
-}
-
-// ============================================================================
-// USERS & AUTHENTICATION
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "USERS & AUTHENTICATION"
-// ============================================================================
-
-model User {
-  id            String     @id @default(uuid())
-  email         String     @unique
-  passwordHash  String?    // NULL for OAuth-only users
-  fullName      String
-  userRole      UserRole
-  
-  // Profile
-  phone         String?
-  address       String?
-  city          String?
-  country       String?
-  timezone      String     @default("UTC")
-  language      String     @default("en")
-  currency      String     @default("USD")
-  
-  // OAuth
-  googleId      String?    @unique
-  facebookId    String?    @unique
-  oauthProvider String?
-  
-  // Verification
-  emailVerified   Boolean   @default(false)
-  emailVerifiedAt DateTime?
-  
-  // GDPR
-  consentGiven          Boolean   @default(false)
-  consentTimestamp      DateTime?
-  consentIp             String?
-  dataRetentionDays     Int       @default(365)
-  scheduledDeletionDate DateTime?
-  
-  // Coach-specific (NULL for non-coaches)
-  parentCoachId String?
-  parentCoach   User?   @relation("CoachToClients", fields: [parentCoachId], references: [id])
-  clients       User[]  @relation("CoachToClients")
-  
-  // Status
-  status       UserStatus @default(ACTIVE)
-  lastLoginAt  DateTime?
-  lastLoginIp  String?
-  
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  sessions              UserSession[]
-  adminRoles            AdminRole[]
-  programEnrollments    UserProgramEnrollment[]
-  stepProgress          UserStepProgress[]
-  innerDnaResult        InnerDnaResult?
-  aiGeneratedContent    AiGeneratedContent[]
-  wheelOfLife           WheelOfLife[]
-  userBaselines         UserBaseline[]
-  userNCodes            UserNCode[]
-  userOutcomes          UserOutcome[]
-  buzzMoments           BuzzMoment[]
-  payments              Payment[]
-  invoices              Invoice[]
-  certifications        Certification[]
-  kycDocuments          KycDocument[]
-  auditLogs             AuditLog[]
-  gdprRequests          GdprDataRequest[]
-  files                 File[]
-  
-  @@index([email])
-  @@index([googleId])
-  @@index([userRole])
-  @@index([status])
-  @@index([parentCoachId])
-  @@map("users")
-}
-
-model AdminRole {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roleName    String
-  permissions Json     // Flexible permission structure
-  createdAt   DateTime @default(now())
-  
-  @@unique([userId, roleName])
-  @@map("admin_roles")
-}
-
-model UserSession {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jwtToken     String
-  refreshToken String?
-  expiresAt    DateTime
-  deviceInfo   Json?
-  ipAddress    String?
-  createdAt    DateTime @default(now())
-  
-  @@index([userId])
-  @@index([jwtToken])
-  @@map("user_sessions")
-}
-
-// ============================================================================
-// PROGRAMS & CONTENT
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "PROGRAMS & CONTENT"
-// ============================================================================
-
-model Program {
-  id          String      @id @default(uuid())
-  slug        String      @unique
-  name        String
-  description String?
-  imageUrl    String?
-  programType ProgramType
-  language    String      @default("en")
-  
-  // Content
-  welcomeMessage   String?
-  termsConditions  String?
-  supportEmail     String?
-  
-  // Configuration
-  durationWeeks        Int?
-  isPublished          Boolean @default(false)
-  requiresCertification Boolean @default(false)
-  
-  // Pricing (base prices)
-  basePriceUsd Decimal? @db.Decimal(10, 2)
-  basePriceInr Decimal? @db.Decimal(10, 2)
-  basePriceAed Decimal? @db.Decimal(10, 2)
-  
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  weeks         ProgramWeek[]
-  enrollments   UserProgramEnrollment[]
-  pricingPlans  PricingPlan[]
-  certifications Certification[]
-  
-  @@index([programType])
-  @@index([language])
-  @@index([isPublished])
-  @@map("programs")
-}
-
-model ProgramWeek {
-  id          String  @id @default(uuid())
-  programId   String
-  program     Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  weekNumber  Int
-  title       String
-  description String?
-  imageUrl    String?
-  objectives  String[]
-  
-  // Configuration
-  isLocked        Boolean @default(false)
-  unlockAfterWeek Int?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  steps ProgramStep[]
-  
-  @@unique([programId, weekNumber])
-  @@index([programId])
-  @@map("program_weeks")
-}
-
-model ProgramStep {
-  id          String      @id @default(uuid())
-  weekId      String
-  week        ProgramWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  stepNumber  Int
-  title       String
-  contentType String?
-  
-  // Content
-  contentUrl      String?
-  contentHtml     String?
-  durationMinutes Int?
-  
-  // Configuration
-  isMandatory Boolean @default(true)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  assignments     Assignment[]
-  userProgress    UserStepProgress[]
-  
-  @@unique([weekId, stepNumber])
-  @@index([weekId])
-  @@map("program_steps")
-}
-
-model Assignment {
-  id          String      @id @default(uuid())
-  stepId      String
-  step        ProgramStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  title       String
-  instructions String
-  
-  // Configuration
-  submissionType     String?
-  maxFileSizeMb      Int?
-  allowedFileTypes   String[]
-  
-  // AI Integration
-  usesAiGeneration   Boolean @default(false)
-  aiPromptTemplate   String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@map("assignments")
-}
-
-// ============================================================================
-// USER PROGRESS & ENROLLMENT
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "USER PROGRESS & ENROLLMENT"
-// ============================================================================
-
-model UserProgramEnrollment {
-  id         String           @id @default(uuid())
-  userId     String
-  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  programId  String
-  program    Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
-  
-  // Enrollment details
-  enrolledAt       DateTime          @default(now())
-  enrollmentStatus EnrollmentStatus  @default(ACTIVE)
-  paymentStatus    PaymentStatus     @default(FREE)
-  
-  // Access control
-  accessGrantedAt DateTime  @default(now())
-  accessExpiresAt DateTime?
-  
-  // Progress tracking
-  completionPercentage Int      @default(0)
-  currentWeek          Int      @default(1)
-  lastActivityAt       DateTime?
-  
-  // Timestamps
-  completedAt DateTime?
-  updatedAt   DateTime  @updatedAt
-  
-  // Relations
-  stepProgress UserStepProgress[]
-  payments     Payment[]
-  
-  @@unique([userId, programId])
-  @@index([userId])
-  @@index([programId])
-  @@index([enrollmentStatus])
-  @@map("user_program_enrollment")
-}
-
-model UserStepProgress {
-  id           String                @id @default(uuid())
-  userId       String
-  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stepId       String
-  step         ProgramStep           @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  enrollmentId String
-  enrollment   UserProgramEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  
-  // Progress
-  status           String    @default("not_started")
-  startedAt        DateTime?
-  completedAt      DateTime?
-  timeSpentSeconds Int       @default(0)
-  
-  // Assignment submission
-  submissionText     String?
-  submissionFileUrl  String?
-  submissionMetadata Json?
-  
-  // AI-generated content for this user
-  aiGeneratedContent Json?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@unique([userId, stepId])
-  @@index([userId])
-  @@index([stepId])
-  @@map("user_step_progress")
-}
-
-// ============================================================================
-// PERSONALITY & INNER DNA INTEGRATION
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "PERSONALITY & INNER DNA"
-// ============================================================================
-
-model InnerDnaResult {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Personality data from Inner DNA API
-  personalityType Int?
-  wing            String?
-  subtype         String?
-  blindSubtype    String?
-  states          Json?
-  
-  // Raw data
-  innerDnaUserId String?
-  rawResponse    Json?
-  
-  // Metadata
-  testCompletedAt DateTime?
-  testVersion     String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  wheelOfLife   WheelOfLife[]
-  userBaselines UserBaseline[]
-  userNCodes    UserNCode[]
-  
-  @@index([personalityType])
-  @@map("inner_dna_results")
-}
-
-// ============================================================================
-// AI-GENERATED CONTENT & CACHING
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "AI-GENERATED CONTENT"
-// ============================================================================
-
-model AiGeneratedContent {
-  id         String @id @default(uuid())
-  userId     String
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Content identification
-  contentType    String
-  contentSubtype String?
-  
-  // Context used for generation
-  personalityContext Json?
-  inputData          Json?
-  promptTemplate     String?
-  
-  // Generated content
-  generatedContent String
-  formattedHtml    String?
-  
-  // Metadata
-  modelVersion      String?
-  tokensUsed        Int?
-  generationTimeMs  Int?
-  costUsd           Decimal? @db.Decimal(10, 4)
-  
-  // Cache management
-  isCached   Boolean   @default(true)
-  expiresAt  DateTime?
-  cacheKey   String?   @unique
-  
-  // User actions
-  userEdited        Boolean @default(false)
-  userApproved      Boolean @default(false)
-  regenerationCount Int     @default(0)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-  @@index([contentType])
-  @@index([cacheKey])
-  @@index([expiresAt])
-  @@map("ai_generated_content")
-}
-
-// ============================================================================
-// HUB ACTIVITIES
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "HUB ACTIVITIES"
-// ============================================================================
-
-model WheelOfLife {
-  id            String          @id @default(uuid())
-  userId        String
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  innerDnaId    String?
-  innerDna      InnerDnaResult? @relation(fields: [innerDnaId], references: [id])
-  
-  // Ratings (1-10)
-  health            Int
-  friendsFamily     Int
-  funRecreation     Int
-  wealth            Int
-  relationship      Int
-  learningGrowth    Int
-  possessions       Int
-  career            Int
-  
-  // AI insights (reference to generated content)
-  aiInsightsId String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-  @@map("wheel_of_life")
-}
-
-model UserBaseline {
-  id            String          @id @default(uuid())
-  userId        String
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  innerDnaId    String?
-  innerDna      InnerDnaResult? @relation(fields: [innerDnaId], references: [id])
-  
-  // Baseline words (user selects 6 from 500+)
-  baselineWords   String[]
-  wordRankings    Int[]
-  
-  // Baseline expressions per life area
-  baselineExpressions Json?
-  expressionRatings   Json?
-  
-  // AI-generated baseline visions
-  aiVisionsId String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-  @@map("user_baselines")
-}
-
-model UserNCode {
-  id            String          @id @default(uuid())
-  userId        String
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  innerDnaId    String?
-  innerDna      InnerDnaResult? @relation(fields: [innerDnaId], references: [id])
-  
-  // N-code (limiting belief)
-  ncodeStatement String
-  ncodeRanking   Int?
-  
-  // E-code (empowering code)
-  ecodeStatement String
-  
-  // Impact on life areas
-  lifeAreaImpacts Json?
-  
-  // AI predictions
-  fiveYearPrediction String?
-  aiPredictionId     String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-  @@map("user_ncodes")
-}
-
-model UserOutcome {
-  id                 String @id @default(uuid())
-  userId             String
-  user               User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // User's desired outcomes (top 3)
-  outcomeTitle       String
-  outcomeDescription String?
-  outcomeRank        Int
-  
-  // INCRED system breakdown (AI-generated)
-  incredSteps      Json?
-  aiIncredId       String?
-  
-  // Challenges and solutions (AI-generated)
-  challenges        Json?
-  powerLeaps        Json?
-  aiChallengesId    String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-  @@map("user_outcomes")
-}
-
-model BuzzMoment {
-  id                  String  @id @default(uuid())
-  userId              String
-  user                User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Buzz moment (exciting moment)
-  momentDescription String
-  isAiSuggested     Boolean @default(false)
-  
-  // If AI-suggested
-  aiContentId String?
-  
-  createdAt DateTime @default(now())
-  
-  @@index([userId])
-  @@map("buzz_moments")
-}
-
-// ============================================================================
-// PAYMENTS & BILLING
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "PAYMENTS & BILLING"
-// ============================================================================
-
-model PricingPlan {
-  id        String      @id @default(uuid())
-  programId String
-  program   Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
-  
-  // Plan details
-  planName    String
-  paymentType PaymentType
-  
-  // Pricing by currency
-  priceUsd Decimal? @db.Decimal(10, 2)
-  priceInr Decimal? @db.Decimal(10, 2)
-  priceAed Decimal? @db.Decimal(10, 2)
-  
-  // Installment configuration
-  installmentCount     Int?
-  installmentFrequency String?
-  
-  // Configuration
-  isActive Boolean @default(true)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  payments Payment[]
-  
-  @@index([programId])
-  @@map("pricing_plans")
-}
-
-model Payment {
-  id           String                @id @default(uuid())
-  userId       String
-  user         User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
-  enrollmentId String?
-  enrollment   UserProgramEnrollment? @relation(fields: [enrollmentId], references: [id])
-  planId       String?
-  plan         PricingPlan?          @relation(fields: [planId], references: [id])
-  
-  // Payment details
-  amount         Decimal        @db.Decimal(10, 2)
-  currency       String
-  paymentGateway PaymentGateway
-  
-  // Gateway-specific
-  gatewayTransactionId String?
-  gatewayPaymentMethod String?
-  gatewayResponse      Json?
-  
-  // Status
-  status TransactionStatus @default(PENDING)
-  
-  // Tax
-  taxRate    Decimal? @db.Decimal(5, 2)
-  taxAmount  Decimal? @db.Decimal(10, 2)
-  totalAmount Decimal @db.Decimal(10, 2)
-  
-  // Installment tracking
-  isInstallment     Boolean @default(false)
-  installmentNumber Int?
-  totalInstallments Int?
-  
-  // Metadata
-  paymentMetadata Json?
-  ipAddress       String?
-  
-  // Timestamps
-  initiatedAt DateTime  @default(now())
-  completedAt DateTime?
-  failedAt    DateTime?
-  
-  // Relations
-  invoices Invoice[]
-  
-  @@index([userId])
-  @@index([enrollmentId])
-  @@index([gatewayTransactionId])
-  @@index([status])
-  @@map("payments")
-}
-
-model Invoice {
-  id        String   @id @default(uuid())
-  paymentId String?
-  payment   Payment? @relation(fields: [paymentId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  
-  // Invoice details
-  invoiceNumber String   @unique
-  invoiceDate   DateTime
-  dueDate       DateTime?
-  
-  // PDF generation
-  pdfUrl         String?
-  pdfGeneratedAt DateTime?
-  
-  createdAt DateTime @default(now())
-  
-  @@index([invoiceNumber])
-  @@index([userId])
-  @@map("invoices")
-}
-
-// ============================================================================
-// CERTIFICATIONS & KYC
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "CERTIFICATIONS & KYC"
-// ============================================================================
-
-model Certification {
-  id                String              @id @default(uuid())
-  userId            String
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  programId         String?
-  program           Program?            @relation(fields: [programId], references: [id])
-  
-  // Certification details
-  certificationType String?
-  certificationNumber String?          @unique
-  
-  // Status
-  status CertificationStatus @default(PENDING)
-  
-  // Certificate generation
-  certificatePdfUrl String?
-  certificateIssuedAt DateTime?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  videos CertificationVideo[]
-  
-  @@index([userId])
-  @@index([status])
-  @@map("certifications")
-}
-
-model CertificationVideo {
-  id              String        @id @default(uuid())
-  certificationId String
-  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
-  
-  // Video details
-  videoUrl          String
-  videoThumbnailUrl String?
-  durationSeconds   Int?
-  
-  // Review
-  status       CertificationStatus @default(PENDING)
-  reviewerId   String?
-  reviewNotes  String?
-  reviewedAt   DateTime?
-  
-  // AI pre-screening (future)
-  aiAnalysis Json?
-  
-  uploadedAt DateTime @default(now())
-  
-  @@index([certificationId])
-  @@index([status])
-  @@map("certification_videos")
-}
-
-model KycDocument {
-  id         String    @id @default(uuid())
-  userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Document details
-  documentType     String
-  documentNumber   String?
-  
-  // Files
-  frontImageUrl String?
-  backImageUrl  String?
-  selfieUrl     String?
-  
-  // Status
-  status           KYCStatus @default(NOT_STARTED)
-  verifiedById     String?
-  verifiedAt       DateTime?
-  rejectionReason  String?
-  
-  // Consent
-  consentGiven     Boolean   @default(false)
-  consentTimestamp DateTime?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-  @@index([status])
-  @@map("kyc_documents")
-}
-
-// ============================================================================
-// AUDIT LOGS & GDPR COMPLIANCE
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "AUDIT LOGS & GDPR"
-// ============================================================================
-
-model AuditLog {
-  id          String   @id @default(uuid())
-  
-  // Actor
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-  adminUserId String?
-  
-  // Event
-  eventType        String
-  eventCategory    String?
-  eventDescription String?
-  
-  // Context
-  resourceType String?
-  resourceId   String?
-  
-  // Details
-  changes  Json?
-  metadata Json?
-  
-  // Request info
-  ipAddress String?
-  userAgent String?
-  requestId String?
-  
-  createdAt DateTime @default(now())
-  
-  @@index([userId])
-  @@index([eventType])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-
-model GdprDataRequest {
-  id            String   @id @default(uuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Request details
-  requestType   String
-  requestStatus String   @default("pending")
-  
-  // Processing
-  processedById String?
-  processedAt   DateTime?
-  
-  // Export data
-  exportFileUrl String?
-  
-  createdAt DateTime @default(now())
-  
-  @@index([userId])
-  @@index([requestStatus])
-  @@map("gdpr_data_requests")
-}
-
-// ============================================================================
-// FILE STORAGE
-// Reference: PROJECT_MASTER_PLAN.md Section 5.2 - "FILE STORAGE"
-// ============================================================================
-
-model File {
-  id         String  @id @default(uuid())
-  userId     String?
-  user       User?   @relation(fields: [userId], references: [id])
-  
-  // File details
-  fileName      String
-  filePath      String
-  fileSizeBytes BigInt?
-  mimeType      String?
-  
-  // Storage
-  storageProvider String  @default("aws_s3")
-  storageKey      String?
-  
-  // Access
-  isPublic  Boolean   @default(false)
-  expiresAt DateTime?
-  
-  // Metadata
-  uploadedById String?
-  fileCategory String?
-  
-  createdAt DateTime @default(now())
-  
-  @@index([userId])
-  @@index([fileCategory])
-  @@map("files")
 }
