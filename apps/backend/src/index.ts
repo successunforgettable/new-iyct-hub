@@ -14,6 +14,7 @@ import progressRoutes from './routes/progress.routes';
 import fileRoutes from './routes/file.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import adminRoutes from './routes/admin.routes';
+import innerDnaRoutes from './routes/inner-dna.routes';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/v1/progress', progressRoutes);
 app.use('/api/v1/files', fileRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/inner-dna', innerDnaRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Endpoint not found' } });

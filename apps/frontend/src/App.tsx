@@ -9,6 +9,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import ProgramListPage from './pages/programs/ProgramListPage';
 import ProgramDetailPage from './pages/programs/ProgramDetailPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import RhetiQuestionnaire from './pages/inner-dna/RhetiQuestionnaire';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,7 +85,7 @@ const App: React.FC = () => {
           />
           
           <Route
-            path="/admin"
+            path="/inner-dna/rheti" element={<ProtectedRoute><AppLayout><RhetiQuestionnaire /></AppLayout></ProtectedRoute>} /><Route path="/admin"
             element={
               <ProtectedRoute>
                 <AppLayout>

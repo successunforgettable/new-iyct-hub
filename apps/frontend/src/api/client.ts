@@ -247,6 +247,30 @@ export const api = {
       return response.data.data;
     },
   },
+
+  // Inner DNA Assessment
+  innerDna: {
+    startAssessment: async () => {
+      const response = await apiClient.post('/inner-dna/start');
+      return response.data;
+    },
+    getAssessment: async () => {
+      const response = await apiClient.get('/inner-dna/assessment');
+      return response.data;
+    },
+    getAllQuestions: async () => {
+      const response = await apiClient.get('/inner-dna/rheti/questions');
+      return response.data;
+    },
+    submitAnswer: async (assessmentId: string, questionNumber: number, selectedOption: 'A' | 'B') => {
+      const response = await apiClient.post('/inner-dna/rheti/answer', {
+        assessmentId,
+        questionNumber,
+        selectedOption,
+      });
+      return response.data;
+    },
+  },
 };
 
 // Legacy exports
@@ -256,6 +280,8 @@ export const progressAPI = api.progress;
 export const filesAPI = api.files;
 export const analyticsAPI = api.analytics;
 export const adminAPI = api.admin;
+export const innerDnaAPI = api.innerDna;
 
 export { apiClient };
 export default api;
+
