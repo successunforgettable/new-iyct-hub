@@ -30,6 +30,7 @@ export class ProgramService {
         basePriceInr: true,
         basePriceAed: true,
         createdAt: true,
+        imageUrl: true,
       },
       orderBy: {
         createdAt: 'desc',

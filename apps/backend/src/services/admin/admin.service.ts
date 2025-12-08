@@ -111,7 +111,7 @@ export const adminService = {
           description: program.description,
           price: price,
           currency: 'USD',
-          status: 'published',
+          status: program.isPublished ? 'published' : 'locked',
           enrollmentCount,
           totalWeeks: weekCount,
           completionRate: 0,
@@ -164,4 +164,12 @@ export const adminService = {
       },
     };
   },
+  async updateProgram(programId: string, data: { isPublished?: boolean }) {
+    const program = await prisma.program.update({
+      where: { id: programId },
+      data: { isPublished: data.isPublished },
+    });
+    return program;
+  },
 };
+

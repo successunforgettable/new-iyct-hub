@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Search,
   Plus,
@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Globe,
   FolderPlus,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 import { api } from '../../api/client';
 
@@ -93,9 +95,10 @@ interface ProgramCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onMoveCategory: (categoryId: string) => void;
+  onToggleLock: () => void;
 }
 
-const ProgramCard: React.FC<ProgramCardProps> = ({ program, categoryColor, onView, onEdit, onDelete, onMoveCategory }) => {
+const ProgramCard: React.FC<ProgramCardProps> = ({ program, categoryColor, onView, onEdit, onDelete, onMoveCategory, onToggleLock }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
 
@@ -222,6 +225,14 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, categoryColor, onVie
                     ))}
                   </div>
                 )}
+                  <button
+                  onClick={() => { onToggleLock(); setShowMenu(false); }}
+                  className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-opacity-50 transition-colors"
+                  style={{ color: program.status === 'locked' ? colors.success : colors.warning }}
+                >
+                  {program.status === 'locked' ? <Unlock size={14} /> : <Lock size={14} />}
+                  {program.status === 'locked' ? 'Publish' : 'Lock'}
+                </button>
                 <button
                   onClick={() => { onDelete(); setShowMenu(false); }}
                   className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-opacity-50 transition-colors"
@@ -238,8 +249,10 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, categoryColor, onVie
 };
 
 const ProgramManagement: React.FC = () => {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [languageFilter, setLanguageFilter] = useState<'all' | 'ENGLISH' | 'HINDI'>('all');
+  const [publishFilter, setPublishFilter] = useState<'all' | 'published' | 'locked'>('all');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(CATEGORIES.map(c => c.id))
   );
@@ -253,6 +266,14 @@ const ProgramManagement: React.FC = () => {
   });
 
   const programs: Program[] = programsResponse || [];
+
+  const togglePublishMutation = useMutation({
+    mutationFn: ({ programId, isPublished }: { programId: string; isPublished: boolean }) =>
+      api.admin.updateProgram(programId, { isPublished }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'programs'] });
+    },
+  });
 
   // Categorize programs
   const categorizeProgram = (program: Program): string => {
@@ -279,7 +300,10 @@ const ProgramManagement: React.FC = () => {
       (languageFilter === 'HINDI' && isHindi) ||
       (languageFilter === 'ENGLISH' && !isHindi);
     
-    return matchesSearch && matchesLanguage;
+    const matchesPublish = publishFilter === 'all' ||
+      (publishFilter === 'published' && program.status === 'published') ||
+      (publishFilter === 'locked' && program.status === 'locked');
+    return matchesSearch && matchesLanguage && matchesPublish;
   });
 
   // Group by category
@@ -319,6 +343,13 @@ const ProgramManagement: React.FC = () => {
     if (confirm(`Delete "${program.title}"?`)) {
       console.log('Delete program:', program);
     }
+  };
+
+  const handleToggleLock = (program: Program) => {
+    togglePublishMutation.mutate({
+      programId: program.id,
+      isPublished: program.status === 'locked',
+    });
   };
 
   const handleMoveCategory = (program: Program, categoryId: string) => {
@@ -392,6 +423,19 @@ const ProgramManagement: React.FC = () => {
             </div>
           </div>
         </div>
+        <div className="rounded-xl p-4 border" style={{ backgroundColor: colors.card, borderColor: colors.border }}>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: `${colors.warning}20` }}>
+              <Lock size={20} style={{ color: colors.warning }} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold" style={{ color: colors.textPrimary }}>
+                {programs.filter((p: Program) => p.status === 'locked').length}
+              </p>
+              <p className="text-xs" style={{ color: colors.textMuted }}>Locked Programs</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters Bar */}
@@ -411,6 +455,27 @@ const ProgramManagement: React.FC = () => {
                 style={{
                   backgroundColor: languageFilter === option.value ? colors.accent : colors.card,
                   color: languageFilter === option.value ? colors.background : colors.textMuted,
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Publish Filter */}
+          <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: colors.border }}>
+            {[
+              { value: 'all', label: 'All' },
+              { value: 'published', label: 'Published' },
+              { value: 'locked', label: 'Locked' },
+            ].map(option => (
+              <button
+                key={option.value}
+                onClick={() => setPublishFilter(option.value as 'all' | 'published' | 'locked')}
+                className="px-4 py-2 text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: publishFilter === option.value ? colors.warning : colors.card,
+                  color: publishFilter === option.value ? colors.background : colors.textMuted,
                 }}
               >
                 {option.label}
@@ -527,6 +592,7 @@ const ProgramManagement: React.FC = () => {
                         onEdit={() => handleEdit(program)}
                         onDelete={() => handleDelete(program)}
                         onMoveCategory={(catId) => handleMoveCategory(program, catId)}
+                        onToggleLock={() => handleToggleLock(program)}
                       />
                     ))}
                   </div>

@@ -234,6 +234,10 @@ export const api = {
       const response = await apiClient.delete(`/admin/users/${userId}`);
       return response.data;
     },
+    updateProgram: async (programId: string, data: { isPublished?: boolean }) => {
+      const response = await apiClient.patch(`/admin/programs/${programId}`, data);
+      return response.data.data;
+    },
     getPrograms: async () => {
       const response = await apiClient.get('/admin/programs');
       return response.data.data;

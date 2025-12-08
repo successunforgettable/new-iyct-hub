@@ -98,3 +98,23 @@ export const getAnalytics = async (_req: Request, res: Response): Promise<void> 
     });
   }
 };
+
+export const updateProgram = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { programId } = req.params;
+    const { isPublished } = req.body;
+    
+    const program = await adminService.updateProgram(programId, { isPublished });
+    
+    res.json({
+      success: true,
+      data: program,
+    });
+  } catch (error) {
+    console.error('Update program error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update program',
+    });
+  }
+};
