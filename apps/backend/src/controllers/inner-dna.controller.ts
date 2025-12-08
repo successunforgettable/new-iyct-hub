@@ -169,3 +169,118 @@ export const resetAssessment = async (req: Request, res: Response): Promise<void
     res.status(500).json({ success: false, error: 'Failed to reset assessment' });
   }
 };
+
+// Get next hero moment scenario
+export const getNextHeroScenario = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const assessment = await innerDnaService.getUserAssessment(userId);
+    if (!assessment) {
+      res.status(404).json({ success: false, error: 'No assessment found. Start RHETI first.' });
+      return;
+    }
+
+    if (assessment.status === 'STARTED') {
+      res.status(400).json({ success: false, error: 'Complete RHETI assessment first.' });
+      return;
+    }
+
+    const result = await innerDnaService.getNextHeroScenario(assessment.id);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Get hero scenario error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get scenario' });
+  }
+};
+
+// Submit hero moment answer
+export const submitHeroAnswer = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const { assessmentId, scenarioId, selectedOptionId, selectedType, optionConfidence } = req.body;
+
+    if (!assessmentId || !scenarioId || !selectedOptionId || !selectedType) {
+      res.status(400).json({ success: false, error: 'Missing required fields' });
+      return;
+    }
+
+    const { heroScores, topType } = await innerDnaService.saveHeroResponse(
+      assessmentId,
+      scenarioId,
+      selectedOptionId,
+      selectedType,
+      optionConfidence || 0.85
+    );
+
+    // Get next scenario
+    const next = await innerDnaService.getNextHeroScenario(assessmentId);
+
+    res.json({
+      success: true,
+      data: {
+        
+        
+        ...next,
+        currentLeader: topType,
+        heroScores,
+        
+        
+      },
+    });
+  } catch (error) {
+    console.error('Submit hero answer error:', error);
+    res.status(500).json({ success: false, error: 'Failed to submit answer' });
+  }
+};
+
+// Get hero moments progress
+export const getHeroProgress = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const assessment = await innerDnaService.getUserAssessment(userId);
+    if (!assessment) {
+      res.status(404).json({ success: false, error: 'No assessment found' });
+      return;
+    }
+
+    const { TYPE_NAMES } = require('../data/hero-moments-scenarios');
+    const heroScores = (assessment.heroScores as Record<string, number>) || {};
+    
+    const scoresWithNames = Object.entries(heroScores)
+      .map(([key, score]) => ({
+        type: parseInt(key.replace('type', '')),
+        name: TYPE_NAMES[parseInt(key.replace('type', ''))] || 'Unknown',
+        confidence: Math.round((score as number) * 100),
+      }))
+      .sort((a, b) => b.confidence - a.confidence);
+
+    res.json({
+      success: true,
+      data: {
+        status: assessment.status,
+        scenariosCompleted: assessment.heroResponses?.length || 0,
+        heroScores: scoresWithNames,
+        finalType: assessment.finalType,
+        finalTypeName: assessment.finalType ? TYPE_NAMES[assessment.finalType] : null,
+      },
+    });
+  } catch (error) {
+    console.error('Get hero progress error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get progress' });
+  }
+};

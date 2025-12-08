@@ -189,6 +189,118 @@ export class InnerDnaService {
     await prisma.heroMomentResponse.deleteMany({ where: { assessment: { userId } } });
     return prisma.innerDnaAssessment.deleteMany({ where: { userId } });
   }
+
+  // ============ HERO MOMENTS METHODS ============
+
+  // Get next hero moment scenario
+  async getNextHeroScenario(assessmentId: string) {
+    const assessment = await prisma.innerDnaAssessment.findUnique({
+      where: { id: assessmentId },
+      include: { heroResponses: true },
+    });
+    if (!assessment) throw new Error("Assessment not found");
+
+    const { GENERAL_SCENARIOS, TARGETED_SCENARIOS, CONFIDENCE_THRESHOLDS, SCENARIO_LIMITS } = require("../../data/hero-moments-scenarios");
+    const answeredIds = assessment.heroResponses.map(r => r.scenarioId);
+    const heroScores = (assessment.heroScores as Record<string, number>) || this.initializeHeroScores();
+
+    // Check if we have reached confidence threshold
+    const topType = this.getTopTypeFromScores(heroScores);
+    if (topType.confidence >= CONFIDENCE_THRESHOLDS.MIN_CONFIDENCE && answeredIds.length >= SCENARIO_LIMITS.MIN_SCENARIOS) {
+      return { completed: true, finalType: topType.type, confidence: topType.confidence, heroScores };
+    }
+
+    // Check max scenarios limit
+    if (answeredIds.length >= SCENARIO_LIMITS.MAX_SCENARIOS) {
+      return { completed: true, finalType: topType.type, confidence: topType.confidence, heroScores, maxReached: true };
+    }
+
+    // Get available scenarios
+    let availableScenarios = GENERAL_SCENARIOS.filter((s: any) => !answeredIds.includes(s.id));
+
+    // If in adaptive phase, prioritize targeted scenarios
+    if (topType.confidence >= CONFIDENCE_THRESHOLDS.ADAPTIVE_THRESHOLD && assessment.topTypes?.length) {
+      const targetedAvailable = TARGETED_SCENARIOS.filter((s: any) => 
+        !answeredIds.includes(s.id) && s.targetTypes?.some((t: number) => assessment.topTypes.includes(t))
+      );
+      if (targetedAvailable.length > 0) availableScenarios = targetedAvailable;
+    }
+
+    if (availableScenarios.length === 0) {
+      return { completed: true, finalType: topType.type, confidence: topType.confidence, heroScores, noMoreScenarios: true };
+    }
+
+    // Shuffle and pick next scenario
+    const nextScenario = availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+    return {
+      completed: false,
+      scenario: nextScenario,
+      scenarioNumber: answeredIds.length + 1,
+      currentConfidence: topType.confidence,
+      leadingType: topType.type,
+      heroScores,
+    };
+  }
+
+  // Initialize hero scores for all 9 types
+  initializeHeroScores(): Record<string, number> {
+    return { type1: 0.111, type2: 0.111, type3: 0.111, type4: 0.111, type5: 0.111, type6: 0.111, type7: 0.111, type8: 0.111, type9: 0.111 };
+  }
+
+  // Get top type from scores
+  getTopTypeFromScores(scores: Record<string, number>): { type: number; confidence: number } {
+    let maxType = 1;
+    let maxScore = 0;
+    for (let i = 1; i <= 9; i++) {
+      const score = scores[`type${i}`] || 0;
+      if (score > maxScore) { maxScore = score; maxType = i; }
+    }
+    return { type: maxType, confidence: maxScore };
+  }
+
+  // Save hero moment response and update Bayesian scores
+  async saveHeroResponse(assessmentId: string, scenarioId: string, selectedOptionId: string, selectedType: number, optionConfidence: number) {
+    const { ALGORITHM_CONSTANTS } = require("../../data/hero-moments-scenarios");
+    const assessment = await prisma.innerDnaAssessment.findUnique({ where: { id: assessmentId } });
+    if (!assessment) throw new Error("Assessment not found");
+
+    let heroScores = (assessment.heroScores as Record<string, number>) || this.initializeHeroScores();
+
+    // Apply Bayesian update
+    const weight = ALGORITHM_CONSTANTS.BASE_RESPONSE_WEIGHT * optionConfidence;
+    heroScores[`type${selectedType}`] = Math.min(0.99, (heroScores[`type${selectedType}`] || 0.111) + weight);
+
+    // Decay other types slightly
+    for (let i = 1; i <= 9; i++) {
+      if (i !== selectedType) {
+        heroScores[`type${i}`] = Math.max(0.01, (heroScores[`type${i}`] || 0.111) * ALGORITHM_CONSTANTS.CONFIDENCE_DECAY_FACTOR);
+      }
+    }
+
+    // Normalize scores to sum to 1
+    const total = Object.values(heroScores).reduce((a, b) => a + b, 0);
+    for (const key of Object.keys(heroScores)) {
+      heroScores[key] = heroScores[key] / total;
+    }
+
+    // Save response
+    await prisma.heroMomentResponse.create({
+      data: { assessmentId, scenarioId, selectedOption: selectedOptionId, selectedType, confidence: optionConfidence },
+    });
+
+    // Update assessment
+    const topType = this.getTopTypeFromScores(heroScores);
+    await prisma.innerDnaAssessment.update({
+      where: { id: assessmentId },
+      data: {
+        heroScores,
+        ...(topType.confidence >= 0.9 ? { finalType: topType.type, status: "HERO_COMPLETE" } : {}),
+      },
+    });
+
+    return { heroScores, topType };
+  }
+
 }
 
 export const innerDnaService = new InnerDnaService();

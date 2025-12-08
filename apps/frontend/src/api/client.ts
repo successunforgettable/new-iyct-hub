@@ -270,6 +270,18 @@ export const api = {
       });
       return response.data;
     },
+    getNextHeroScenario: async () => {
+      const response = await apiClient.get("/inner-dna/hero/scenario");
+      return response.data;
+    },
+    submitHeroAnswer: async (assessmentId: string, scenarioId: string, selectedOptionId: string, selectedType: number, optionConfidence: number) => {
+      const response = await apiClient.post("/inner-dna/hero/answer", { assessmentId, scenarioId, selectedOptionId, selectedType, optionConfidence });
+      return response.data;
+    },
+    getHeroProgress: async () => {
+      const response = await apiClient.get("/inner-dna/hero/progress");
+      return response.data;
+    },
   },
 };
 

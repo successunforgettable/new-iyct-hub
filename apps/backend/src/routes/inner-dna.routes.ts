@@ -7,6 +7,9 @@ import {
   submitAnswer,
   getAssessment,
   resetAssessment,
+  getNextHeroScenario,
+  submitHeroAnswer,
+  getHeroProgress,
 } from '../controllers/inner-dna.controller';
 
 const router = Router();
@@ -31,5 +34,10 @@ router.post('/rheti/answer', submitAnswer);
 
 // Reset assessment (for testing)
 router.delete("/reset", resetAssessment);
+
+// Hero Moments routes
+router.get("/hero/scenario", getNextHeroScenario);
+router.post("/hero/answer", submitHeroAnswer);
+router.get("/hero/progress", getHeroProgress);
 
 export default router;
