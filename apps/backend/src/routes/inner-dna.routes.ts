@@ -10,6 +10,8 @@ import {
   getNextHeroScenario,
   submitHeroAnswer,
   getHeroProgress,
+  getBuildingBlockQuestions,
+  submitBuildingBlockAnswers,
 } from '../controllers/inner-dna.controller';
 
 const router = Router();
@@ -39,5 +41,9 @@ router.delete("/reset", resetAssessment);
 router.get("/hero/scenario", getNextHeroScenario);
 router.post("/hero/answer", submitHeroAnswer);
 router.get("/hero/progress", getHeroProgress);
+
+// Building Blocks routes
+router.get("/building-blocks/questions", getBuildingBlockQuestions);
+router.post("/building-blocks/answer", submitBuildingBlockAnswers);
 
 export default router;

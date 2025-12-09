@@ -284,3 +284,42 @@ export const getHeroProgress = async (req: Request, res: Response): Promise<void
     res.status(500).json({ success: false, error: 'Failed to get progress' });
   }
 };
+
+// ========== BUILDING BLOCKS (Stage 3) ==========
+
+export const getBuildingBlockQuestions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) { res.status(401).json({ success: false, error: 'Unauthorized' }); return; }
+
+    const assessment = await innerDnaService.getActiveAssessment(userId);
+    if (!assessment) { res.status(404).json({ success: false, error: 'No assessment found' }); return; }
+
+    const result = await innerDnaService.getBuildingBlockQuestions(assessment.id);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    console.error('Get building block questions error:', error);
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+export const submitBuildingBlockAnswers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) { res.status(401).json({ success: false, error: 'Unauthorized' }); return; }
+
+    const { answers } = req.body;
+    if (!answers || !Array.isArray(answers)) {
+      res.status(400).json({ success: false, error: 'Answers array required' }); return;
+    }
+
+    const assessment = await innerDnaService.getActiveAssessment(userId);
+    if (!assessment) { res.status(404).json({ success: false, error: 'No assessment found' }); return; }
+
+    const result = await innerDnaService.saveBuildingBlockAnswers(assessment.id, answers);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    console.error('Submit building block answers error:', error);
+    res.status(400).json({ success: false, error: error.message });
+  }
+};

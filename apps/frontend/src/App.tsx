@@ -11,6 +11,7 @@ import ProgramDetailPage from './pages/programs/ProgramDetailPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import RhetiQuestionnaire from "./pages/inner-dna/RhetiQuestionnaire";
 import HeroMoments from "./pages/inner-dna/HeroMoments";
+import BuildingBlocks from "./pages/inner-dna/BuildingBlocks";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,7 +87,7 @@ const App: React.FC = () => {
           />
           
           <Route
-            path="/inner-dna/rheti" element={<ProtectedRoute><AppLayout><RhetiQuestionnaire /></AppLayout></ProtectedRoute>} /><Route path="/inner-dna/hero-moments" element={<ProtectedRoute><AppLayout><HeroMoments /></AppLayout></ProtectedRoute>} /><Route path="/admin"
+            path="/inner-dna/rheti" element={<ProtectedRoute><AppLayout><RhetiQuestionnaire /></AppLayout></ProtectedRoute>} /><Route path="/inner-dna/hero-moments" element={<ProtectedRoute><AppLayout><HeroMoments /></AppLayout></ProtectedRoute>} /><Route path="/inner-dna/building-blocks" element={<ProtectedRoute><AppLayout><BuildingBlocks /></AppLayout></ProtectedRoute>} /><Route path="/admin"
             element={
               <ProtectedRoute>
                 <AppLayout>

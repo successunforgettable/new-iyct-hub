@@ -183,6 +183,13 @@ export class InnerDnaService {
     });
   }
 
+  async getActiveAssessment(userId: string) {
+    return prisma.innerDnaAssessment.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" }
+    });
+  }
+
   // Reset assessment for testing
   async resetAssessment(userId: string) {
     await prisma.rhetiResponse.deleteMany({ where: { assessment: { userId } } });
@@ -350,6 +357,54 @@ export class InnerDnaService {
     });
 
     return { heroScores, topType: { type: heroDominant, confidence: isComplete ? finalConfidence : heroScores[`type${heroDominant}`] || 0 }, isComplete, scenarioCount };
+  }
+
+  // ========== BUILDING BLOCKS (Stage 3) ==========
+
+  async getBuildingBlockQuestions(assessmentId: string) {
+    const assessment = await prisma.innerDnaAssessment.findUnique({ where: { id: assessmentId } });
+    if (!assessment) throw new Error("Assessment not found");
+    if (assessment.status !== "HERO_COMPLETE") throw new Error("Complete Hero Moments first");
+    if (!assessment.finalType) throw new Error("No final type determined");
+
+    const { getWingQuestionsForType } = await import("../../data/building-blocks-questions");
+    const wingSet = getWingQuestionsForType(assessment.finalType);
+    if (!wingSet) throw new Error("No wing questions for type " + assessment.finalType);
+
+    return {
+      questions: wingSet.questions.map((q: any) => ({
+        id: q.id,
+        optionA: q.optionA,
+        optionB: q.optionB
+      })),
+      totalQuestions: wingSet.questions.length
+    };
+  }
+
+  async saveBuildingBlockAnswers(assessmentId: string, answers: { questionId: string; selected: "A" | "B" }[]) {
+    const assessment = await prisma.innerDnaAssessment.findUnique({ where: { id: assessmentId } });
+    if (!assessment) throw new Error("Assessment not found");
+    if (!assessment.finalType) throw new Error("No final type determined");
+
+    const { getWingQuestionsForType, determineWing } = await import("../../data/building-blocks-questions");
+    const wingSet = getWingQuestionsForType(assessment.finalType);
+    if (!wingSet) throw new Error("No wing questions for type");
+
+    let wingAPicks = 0;
+    let wingBPicks = 0;
+    answers.forEach(a => {
+      if (a.selected === "A") wingAPicks++;
+      else wingBPicks++;
+    });
+
+    const wing = determineWing(assessment.finalType, wingAPicks, wingBPicks);
+
+    await prisma.innerDnaAssessment.update({
+      where: { id: assessmentId },
+      data: { buildingBlock: String(wing.wing), status: "BUILDING_COMPLETE" }
+    });
+
+    return { wing, wingAPicks, wingBPicks, status: "BUILDING_COMPLETE" };
   }
 
 }
