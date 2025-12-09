@@ -202,10 +202,10 @@ export class InnerDnaService {
 
     const { GENERAL_SCENARIOS, TARGETED_SCENARIOS, CONFIDENCE_THRESHOLDS, SCENARIO_LIMITS } = require("../../data/hero-moments-scenarios");
     const answeredIds = assessment.heroResponses.map(r => r.scenarioId);
-    const heroScores = (assessment.heroScores as Record<string, number>) || this.initializeHeroScores();
+    const topTypes = assessment.topTypes || []; const heroScores = (assessment.heroScores as Record<string, number>) || this.initializeHeroScores(topTypes);
 
     // Check if we have reached confidence threshold
-    const topType = this.getTopTypeFromScores(heroScores);
+    const topType = this.getTopTypeFromScores(heroScores, topTypes);
     if (topType.confidence >= CONFIDENCE_THRESHOLDS.MIN_CONFIDENCE && answeredIds.length >= SCENARIO_LIMITS.MIN_SCENARIOS) {
       return { completed: true, finalType: topType.type, confidence: topType.confidence, heroScores };
     }
@@ -231,7 +231,7 @@ export class InnerDnaService {
     }
 
     // Shuffle and pick next scenario
-    const nextScenario = availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+    const rawScenario = availableScenarios[Math.floor(Math.random() * availableScenarios.length)]; const filteredOptions = rawScenario.options.filter((o: any) => topTypes.includes(o.personalityType)); const nextScenario = { ...rawScenario, options: filteredOptions };
     return {
       completed: false,
       scenario: nextScenario,
@@ -243,15 +243,28 @@ export class InnerDnaService {
   }
 
   // Initialize hero scores for all 9 types
-  initializeHeroScores(): Record<string, number> {
-    return { type1: 0.111, type2: 0.111, type3: 0.111, type4: 0.111, type5: 0.111, type6: 0.111, type7: 0.111, type8: 0.111, type9: 0.111 };
+  initializeHeroScores(topTypes: number[], rhetiScores?: Record<string, number>): Record<string, number> {
+    const scores: Record<string, number> = {};
+    if (rhetiScores && topTypes.length === 3) {
+      // Use RHETI scores as Bayesian prior
+      const t1 = rhetiScores[`type${topTypes[0]}`] || 0;
+      const t2 = rhetiScores[`type${topTypes[1]}`] || 0;
+      const t3 = rhetiScores[`type${topTypes[2]}`] || 0;
+      const total = t1 + t2 + t3;
+      scores[`type${topTypes[0]}`] = t1 / total;
+      scores[`type${topTypes[1]}`] = t2 / total;
+      scores[`type${topTypes[2]}`] = t3 / total;
+    } else {
+      topTypes.forEach(t => scores[`type${t}`] = 0.333);
+    }
+    return scores;
   }
 
   // Get top type from scores
-  getTopTypeFromScores(scores: Record<string, number>): { type: number; confidence: number } {
+  getTopTypeFromScores(scores: Record<string, number>, topTypes?: number[]): { type: number; confidence: number } {
     let maxType = 1;
     let maxScore = 0;
-    for (let i = 1; i <= 9; i++) {
+    const typesToCheck = topTypes && topTypes.length > 0 ? topTypes : [1,2,3,4,5,6,7,8,9]; for (const i of typesToCheck) {
       const score = scores[`type${i}`] || 0;
       if (score > maxScore) { maxScore = score; maxType = i; }
     }
@@ -260,45 +273,83 @@ export class InnerDnaService {
 
   // Save hero moment response and update Bayesian scores
   async saveHeroResponse(assessmentId: string, scenarioId: string, selectedOptionId: string, selectedType: number, optionConfidence: number) {
-    const { ALGORITHM_CONSTANTS } = require("../../data/hero-moments-scenarios");
-    const assessment = await prisma.innerDnaAssessment.findUnique({ where: { id: assessmentId } });
+    const assessment = await prisma.innerDnaAssessment.findUnique({ 
+      where: { id: assessmentId }, 
+      include: { heroResponses: true } 
+    });
     if (!assessment) throw new Error("Assessment not found");
 
-    let heroScores = (assessment.heroScores as Record<string, number>) || this.initializeHeroScores();
+    const topTypes = assessment.topTypes || [];
+    const rhetiScores = assessment.rhetiScores as Record<string, number> || {};
 
-    // Apply Bayesian update
-    const weight = ALGORITHM_CONSTANTS.BASE_RESPONSE_WEIGHT * optionConfidence;
-    heroScores[`type${selectedType}`] = Math.min(0.99, (heroScores[`type${selectedType}`] || 0.111) + weight);
-
-    // Decay other types slightly
-    for (let i = 1; i <= 9; i++) {
-      if (i !== selectedType) {
-        heroScores[`type${i}`] = Math.max(0.01, (heroScores[`type${i}`] || 0.111) * ALGORITHM_CONSTANTS.CONFIDENCE_DECAY_FACTOR);
-      }
-    }
-
-    // Normalize scores to sum to 1
-    const total = Object.values(heroScores).reduce((a, b) => a + b, 0);
-    for (const key of Object.keys(heroScores)) {
-      heroScores[key] = heroScores[key] / total;
-    }
-
-    // Save response
+    // Save response first
     await prisma.heroMomentResponse.create({
       data: { assessmentId, scenarioId, selectedOption: selectedOptionId, selectedType, confidence: optionConfidence },
     });
 
-    // Update assessment
-    const topType = this.getTopTypeFromScores(heroScores);
+    // Get all responses including this one
+    const allResponses = [...assessment.heroResponses, { selectedType }];
+    const scenarioCount = allResponses.length;
+
+    // Count picks per type
+    const typeCounts: Record<number, number> = {};
+    allResponses.forEach(r => { typeCounts[r.selectedType] = (typeCounts[r.selectedType] || 0) + 1; });
+
+    // Find dominant type
+    const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+    const heroDominant = parseInt(sortedTypes[0][0]);
+    const heroDominantCount = sortedTypes[0][1];
+    const heroSecondCount = sortedTypes[1] ? sortedTypes[1][1] : 0;
+    const heroGap = heroDominantCount - heroSecondCount;
+
+    // Calculate RHETI clarity
+    const rhetiTop3Scores = topTypes.map(t => rhetiScores[`type${t}`] || 0);
+    const rhetiGap = rhetiTop3Scores[0] - rhetiTop3Scores[1];
+    const isRhetiClear = rhetiGap >= 3;
+    const rhetiLeader = topTypes[0];
+    const heroMatchesRheti = heroDominant === rhetiLeader;
+
+    // SMART COMPLETION - pick counting based
+    let isComplete = false;
+    let finalConfidence = 0;
+
+    if (isRhetiClear && heroMatchesRheti && heroDominantCount >= 2) {
+      isComplete = true;
+      finalConfidence = 0.92;
+    } else if (heroDominantCount >= 3 && heroGap >= 2) {
+      isComplete = true;
+      finalConfidence = 0.93;
+    } else if (heroDominantCount >= 3 && heroGap >= 1) {
+      isComplete = true;
+      finalConfidence = 0.91;
+    } else if (scenarioCount >= 5 && heroGap >= 2) {
+      isComplete = true;
+      finalConfidence = 0.90;
+    } else if (scenarioCount >= 8) {
+      isComplete = true;
+      finalConfidence = 0.85;
+    }
+
+    // Build heroScores from pick counts
+    const heroScores: Record<string, number> = {};
+    if (isComplete) {
+      heroScores[`type${heroDominant}`] = finalConfidence;
+      const remaining = 1 - finalConfidence;
+      const otherTypes = topTypes.filter(t => t !== heroDominant);
+      otherTypes.forEach(t => { heroScores[`type${t}`] = remaining / otherTypes.length; });
+    } else {
+      topTypes.forEach(t => { heroScores[`type${t}`] = (typeCounts[t] || 0) / scenarioCount; });
+    }
+
     await prisma.innerDnaAssessment.update({
       where: { id: assessmentId },
       data: {
         heroScores,
-        ...(topType.confidence >= 0.9 ? { finalType: topType.type, status: "HERO_COMPLETE" } : {}),
+        ...(isComplete ? { finalType: heroDominant, status: "HERO_COMPLETE" } : {}),
       },
     });
 
-    return { heroScores, topType };
+    return { heroScores, topType: { type: heroDominant, confidence: isComplete ? finalConfidence : heroScores[`type${heroDominant}`] || 0 }, isComplete, scenarioCount };
   }
 
 }

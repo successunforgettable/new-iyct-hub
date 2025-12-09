@@ -222,7 +222,7 @@ export default function HeroMoments() {
               transition={{ delay: 0.4 }}
               className="text-3xl font-bold text-white mb-2 text-center"
             >
-              Your Type Revealed!
+              Your Inner DNA is taking shape!
             </motion.h1>
             
             <motion.p
@@ -231,7 +231,7 @@ export default function HeroMoments() {
               transition={{ delay: 0.6 }}
               className="text-gray-400 text-center mb-8"
             >
-              With 90%+ confidence, your core personality type is:
+              3 pieces of your unique code are yet to be discovered
             </motion.p>
 
             <motion.div
@@ -247,10 +247,10 @@ export default function HeroMoments() {
                 className="block text-6xl font-bold mb-2"
                 style={{ color: '#5dade2' }}
               >
-                Type {finalType}
+                🧬 Core Pattern
               </motion.span>
               <span className="text-2xl text-white font-semibold">
-                The {TYPE_NAMES[finalType]}
+                Confirmed
               </span>
             </motion.div>
 
@@ -260,7 +260,7 @@ export default function HeroMoments() {
               transition={{ delay: 1.2 }}
               className="text-gray-400 text-center text-sm mb-6"
             >
-              Next, let's discover your Building Block - the adjacent type that flavors your personality.
+              Your core pattern is locked in. Next we'll discover what flavors it.
             </motion.p>
 
             <motion.button

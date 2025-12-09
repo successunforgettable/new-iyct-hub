@@ -294,7 +294,7 @@ export default function RhetiQuestionnaire() {
             <h1 className="text-2xl font-bold text-white mb-2 text-center">Stage 1 Complete!</h1>
             <p className="text-gray-400 text-center mb-8">Your personality screening is complete</p>
             
-            <h2 className="text-lg font-semibold text-white mb-4">Your Top 3 Types:</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">We discovered 3 pieces of your Inner DNA!</h2>
             <div className="space-y-3 mb-8">
               {results.topTypesWithNames.map((t, index) => (
                 <motion.div
@@ -312,9 +312,9 @@ export default function RhetiQuestionnaire() {
                     >
                       {index + 1}
                     </span>
-                    <p className="text-white font-medium">Type {t.type}: {t.name}</p>
+                    <p className="text-white font-medium">🧬 DNA Strand {index + 1}</p>
                   </div>
-                  <span className="text-cyan-400 font-semibold">{t.score} points</span>
+                  <span className="text-cyan-400 font-semibold">discovered</span>
                 </motion.div>
               ))}
             </div>
