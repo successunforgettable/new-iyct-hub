@@ -58,6 +58,15 @@ export default function RhetiQuestionnaire() {
   } | null>(null);
   const [selectedOption, setSelectedOption] = useState<'A' | 'B' | null>(null);
   const [streak, setStreak] = useState(0);
+
+  // DNA Code for completion reveal
+  const [dnaCode] = useState(() => {
+    const bases = ['A', 'T', 'G', 'C'];
+    const seg1 = Array(4).fill(0).map(() => bases[Math.floor(Math.random() * 4)]).join('');
+    const seg2 = Math.floor(Math.random() * 9000 + 1000);
+    const seg3 = Array(3).fill(0).map(() => bases[Math.floor(Math.random() * 4)]).join('');
+    return `${seg1}-${seg2}-${seg3}`;
+  });
   const [showMilestone, setShowMilestone] = useState(false);
   const [currentMilestone, setCurrentMilestone] = useState<number | null>(null);
   const [encouragement, setEncouragement] = useState(ENCOURAGEMENTS[0]);
@@ -281,58 +290,100 @@ export default function RhetiQuestionnaire() {
   // Completed state
   if (completed && results) {
     return (
-      <div className="min-h-screen py-8 px-4" style={{ backgroundColor: '#0a1628' }}>
+      <div className="min-h-screen py-8 px-4 flex items-center justify-center" style={{ backgroundColor: '#0a1628' }}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-lg mx-auto text-center"
         >
-          <div className="rounded-xl p-8 mb-6" style={{ backgroundColor: '#1a2332', border: '1px solid #2a3b52' }}>
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-6xl text-center mb-4">
-              🎯
-            </motion.div>
-            <h1 className="text-2xl font-bold text-white mb-2 text-center">Stage 1 Complete!</h1>
-            <p className="text-gray-400 text-center mb-8">Your personality screening is complete</p>
-            
-            <h2 className="text-lg font-semibold text-white mb-4">We discovered 3 pieces of your Inner DNA!</h2>
-            <div className="space-y-3 mb-8">
-              {results.topTypesWithNames.map((t, index) => (
-                <motion.div
-                  key={t.type}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.15 }}
-                  className="flex items-center justify-between p-4 rounded-lg"
-                  style={{ backgroundColor: index === 0 ? '#1e3a5f' : '#0d1829', border: '1px solid #2a3b52' }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="w-8 h-8 rounded-full flex items-center justify-center font-bold"
-                      style={{ backgroundColor: '#5dade2', color: '#0a1628' }}
-                    >
-                      {index + 1}
-                    </span>
-                    <p className="text-white font-medium">🧬 DNA Strand {index + 1}</p>
-                  </div>
-                  <span className="text-cyan-400 font-semibold">discovered</span>
-                </motion.div>
-              ))}
+          {/* Animated DNA Helix Icon */}
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            className="text-7xl mb-6"
+          >
+            🧬
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-3xl font-bold text-white mb-2"
+          >
+            Stage 1 Complete
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-gray-400 mb-8"
+          >
+            Initial Sequence Mapped
+          </motion.p>
+
+          {/* DNA Code Reveal Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, type: 'spring' }}
+            className="relative mb-8"
+          >
+            <div className="bg-[#0a1628] rounded-xl p-6 border border-cyan-500/50 relative overflow-hidden">
+              {/* Corner decorations */}
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-500/50" />
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-500/50" />
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-500/50" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-500/50" />
+
+              <div className="text-xs text-cyan-500/70 uppercase tracking-widest mb-2">
+                Classified Genetic Marker
+              </div>
+
+              <div className="font-mono text-3xl font-bold tracking-wider">
+                {dnaCode.split('').map((char, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.2 + i * 0.05 }}
+                    className={char === '-' ? 'text-gray-500' : 'text-cyan-400'}
+                    style={{ textShadow: char !== '-' ? '0 0 10px rgba(93,173,226,0.8)' : 'none' }}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+              </div>
+
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ delay: 1.5, duration: 1 }}
+                className="h-0.5 bg-gradient-to-r from-transparent via-cyan-500 to-transparent mt-4"
+              />
+
+              <div className="text-xs text-gray-500 mt-2">
+                Strand #1 of 5 • Initial Sequence Mapped
+              </div>
             </div>
+          </motion.div>
 
-            <p className="text-gray-400 text-sm mb-6 text-center">
-              Next, we'll use Hero Moments scenarios to narrow down your exact type with 90% confidence.
-            </p>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleContinueToHeroMoments}
-              className="w-full py-3 rounded-lg font-semibold text-white transition-colors"
-              style={{ backgroundColor: '#5dade2' }}
-            >
-              Continue to Hero Moments →
-            </motion.button>
-          </div>
+          {/* Continue Button */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.8 }}
+            whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(93,173,226,0.4)' }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleContinueToHeroMoments}
+            className="w-full py-4 rounded-xl font-semibold text-white transition-all"
+            style={{ backgroundColor: '#5dade2' }}
+          >
+            Continue to Hero Moments →
+          </motion.button>
         </motion.div>
       </div>
     );

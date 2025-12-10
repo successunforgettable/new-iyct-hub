@@ -56,6 +56,15 @@ export default function HeroMoments() {
   const [showConfidenceBoost, setShowConfidenceBoost] = useState(false);
   const [direction, setDirection] = useState(1);
 
+  // DNA Code for completion reveal
+  const [dnaCode] = useState(() => {
+    const bases = ['A', 'T', 'G', 'C'];
+    const seg1 = Array(4).fill(0).map(() => bases[Math.floor(Math.random() * 4)]).join('');
+    const seg2 = Math.floor(Math.random() * 9000 + 1000);
+    const seg3 = Array(3).fill(0).map(() => bases[Math.floor(Math.random() * 4)]).join('');
+    return `${seg1}-${seg2}-${seg3}`;
+  });
+
   useEffect(() => {
     loadNextScenario();
   }, []);
@@ -200,82 +209,100 @@ export default function HeroMoments() {
   // Completed state
   if (completed && finalType) {
     return (
-      <div className="min-h-screen py-8 px-4" style={{ backgroundColor: '#0a1628' }}>
+      <div className="min-h-screen py-8 px-4 flex items-center justify-center" style={{ backgroundColor: '#0a1628' }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-2xl mx-auto"
+          transition={{ duration: 0.5 }}
+          className="max-w-lg mx-auto text-center"
         >
-          <div className="rounded-xl p-8" style={{ backgroundColor: '#1a2332', border: '1px solid #2a3b52' }}>
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', damping: 10, delay: 0.2 }}
-              className="text-7xl text-center mb-6"
-            >
-              🎯
-            </motion.div>
-            
-            <motion.h1
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-3xl font-bold text-white mb-2 text-center"
-            >
-              Your Inner DNA is taking shape!
-            </motion.h1>
-            
-            <motion.p
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-gray-400 text-center mb-8"
-            >
-              3 pieces of your unique code are yet to be discovered
-            </motion.p>
+          {/* Animated DNA Helix Icon */}
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            className="text-7xl mb-6"
+          >
+            🧬
+          </motion.div>
 
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.8, type: 'spring', damping: 8 }}
-              className="text-center mb-8 p-8 rounded-xl"
-              style={{ backgroundColor: '#1e3a5f', border: '2px solid #5dade2' }}
-            >
-              <motion.span
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="block text-6xl font-bold mb-2"
-                style={{ color: '#5dade2' }}
-              >
-                🧬 Core Pattern
-              </motion.span>
-              <span className="text-2xl text-white font-semibold">
-                Confirmed
-              </span>
-            </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-3xl font-bold text-white mb-2"
+          >
+            Stage 2 Complete
+          </motion.h1>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2 }}
-              className="text-gray-400 text-center text-sm mb-6"
-            >
-              Your core pattern is locked in. Next we'll discover what flavors it.
-            </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-gray-400 mb-8"
+          >
+            Core Pattern Locked
+          </motion.p>
 
-            <motion.button
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1.4 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleContinue}
-              className="w-full py-4 rounded-lg font-semibold text-white text-lg transition-colors"
-              style={{ backgroundColor: '#5dade2' }}
-            >
-              Continue to Building Blocks →
-            </motion.button>
-          </div>
+          {/* DNA Code Reveal Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, type: 'spring' }}
+            className="relative mb-8"
+          >
+            <div className="bg-[#0a1628] rounded-xl p-6 border border-cyan-500/50 relative overflow-hidden">
+              {/* Corner decorations */}
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-500/50" />
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-500/50" />
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-500/50" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-500/50" />
+
+              <div className="text-xs text-cyan-500/70 uppercase tracking-widest mb-2">
+                Classified Genetic Marker
+              </div>
+
+              <div className="font-mono text-3xl font-bold tracking-wider">
+                {dnaCode.split('').map((char, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.2 + i * 0.05 }}
+                    className={char === '-' ? 'text-gray-500' : 'text-cyan-400'}
+                    style={{ textShadow: char !== '-' ? '0 0 10px rgba(93,173,226,0.8)' : 'none' }}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+              </div>
+
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ delay: 1.5, duration: 1 }}
+                className="h-0.5 bg-gradient-to-r from-transparent via-cyan-500 to-transparent mt-4"
+              />
+
+              <div className="text-xs text-gray-500 mt-2">
+                Strand #2 of 5 • Core Pattern Locked
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Continue Button */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.8 }}
+            whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(93,173,226,0.4)' }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleContinue}
+            className="w-full py-4 rounded-xl font-semibold text-white transition-all"
+            style={{ backgroundColor: '#5dade2' }}
+          >
+            Continue to Building Blocks →
+          </motion.button>
         </motion.div>
       </div>
     );
