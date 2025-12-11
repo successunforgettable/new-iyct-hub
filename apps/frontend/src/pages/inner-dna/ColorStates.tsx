@@ -1,844 +1,814 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { apiClient } from '../../api/client';
 
-// State phrases for all 9 types - neutral, non-judgmental wording
-const STATE_PHRASES: Record<number, string[]> = {
-  1: [
-    "I inspire through integrity",
-    "I uphold what's right",
-    "I correct what's wrong",
-    "I criticize what falls short",
-    "I condemn all failure"
-  ],
-  2: [
-    "I give freely without needing",
-    "I support those I love",
-    "I help to feel needed",
-    "I give to get",
-    "I demand what I'm owed"
-  ],
-  3: [
-    "I succeed by being true",
-    "I achieve and inspire",
-    "I perform to impress",
-    "I win at any cost",
-    "I deceive to stay on top"
-  ],
-  4: [
-    "I create from wholeness",
-    "I feel deeply and express",
-    "I long for what's missing",
-    "I dwell in my pain",
-    "I'm defined by suffering"
-  ],
-  5: [
-    "I share wisdom freely",
-    "I observe and understand",
-    "I withdraw to conserve",
-    "I detach from everything",
-    "I isolate completely"
-  ],
-  6: [
-    "I trust myself and life",
-    "I prepare and stay loyal",
-    "I scan for what's wrong",
-    "I suspect everyone",
-    "I see enemies everywhere"
-  ],
-  7: [
-    "I savor each moment",
-    "I explore and inspire",
-    "I chase the next thing",
-    "I escape discomfort",
-    "I numb all pain"
-  ],
-  8: [
-    "I lead with quiet power",
-    "I protect what matters",
-    "I stay ready for anything",
-    "I control the battlefield",
-    "I eliminate all threats"
-  ],
-  9: [
-    "I'm present and engaged",
-    "I create harmony",
-    "I keep the peace",
-    "I disappear to avoid",
-    "I'm numb to everything"
-  ]
+// ============================================
+// ALL 135 BEHAVIORS (9 types × 5 states × 3 each)
+// ============================================
+const STATE_BEHAVIORS: Record<number, Record<string, string[]>> = {
+  1: {
+    GRN: ["I accept that \"good enough\" is often enough", "I laugh at my own imperfections", "I inspire through example, not criticism"],
+    BLU: ["I hold high standards while allowing for mistakes", "I speak up about what's wrong but offer solutions", "I follow my principles even when inconvenient"],
+    YLW: ["I notice errors and feel compelled to point them out", "I have a running mental checklist of what needs improving", "I work harder than others to make sure things are done right"],
+    ORG: ["I get frustrated when others don't meet my standards", "I criticize more than I praise", "I feel resentful carrying the burden of responsibility"],
+    RED: ["I exempt myself from rules I impose on others", "I become harsh and unforgiving when standards slip", "I become moody and feel nobody understands how hard I try"]
+  },
+  2: {
+    GRN: ["I give without keeping track of what I'm owed", "I take care of my own needs without guilt", "I love others without needing them to need me"],
+    BLU: ["I offer help but respect when it's declined", "I express my own needs directly", "I support people while trusting they can handle things"],
+    YLW: ["I sense what others need before they ask", "I make myself indispensable to important people", "I show different sides of myself depending on who I'm with"],
+    ORG: ["I remind people of what I've done for them", "I give advice even when it's not requested", "I feel hurt when my help isn't appreciated enough"],
+    RED: ["I become aggressive when I feel taken for granted", "I manipulate through guilt about all I've sacrificed", "I feel entitled to control those I've helped"]
+  },
+  3: {
+    GRN: ["My worth doesn't depend on my achievements", "I can be vulnerable about my failures", "I help others succeed without needing credit"],
+    BLU: ["I work hard but know when to stop", "I'm authentic even when it's not impressive", "I celebrate others' success genuinely"],
+    YLW: ["I'm always working on the next achievement", "I adapt my image to what each situation requires", "I compare myself to others to gauge my success"],
+    ORG: ["I exaggerate accomplishments to stay impressive", "I cut corners to maintain my successful image", "I dismiss others who might outshine me"],
+    RED: ["I deceive others to protect my reputation", "I've become an empty shell just going through motions", "I sabotage anyone who threatens my position"]
+  },
+  4: {
+    GRN: ["I create from a place of fullness, not emptiness", "I find beauty in ordinary moments", "I transform my pain into something that helps others"],
+    BLU: ["I express my feelings without being consumed by them", "I appreciate what I have while honoring what I feel", "I connect with others through shared humanity"],
+    YLW: ["I feel different from others in ways they don't understand", "I dwell on what's missing in my life", "I express myself to stand out from the crowd"],
+    ORG: ["I push people away then feel abandoned", "I wallow in my emotions to prove how deeply I feel", "I resent those who seem to have what I lack"],
+    RED: ["I've given up on ever being truly happy", "I demand constant proof that people love me", "I don't know who I'd be without my pain"]
+  },
+  5: {
+    GRN: ["I share my knowledge generously with others", "I engage with life, not just observe it", "I trust my competence without needing more preparation"],
+    BLU: ["I balance thinking with doing", "I connect with people while maintaining boundaries", "I contribute my expertise when it's needed"],
+    YLW: ["I find social interaction draining even when I enjoy it", "I prefer to observe before participating", "I accumulate knowledge in case I need it later"],
+    ORG: ["I withdraw when demands feel overwhelming", "I hoard resources, time, and energy", "I disconnect from feelings to stay functional"],
+    RED: ["I've cut myself off from almost everyone", "I reject the world that feels too demanding", "I jump frantically between distractions to escape myself"]
+  },
+  6: {
+    GRN: ["I trust myself to handle whatever comes", "I feel secure even in uncertain situations", "I give others the benefit of the doubt"],
+    BLU: ["I prepare reasonably but don't over-worry", "I'm loyal while maintaining my own judgment", "I face fears rather than avoiding them"],
+    YLW: ["I scan for what could go wrong in situations", "I seek reassurance from authorities or trusted people", "I question people's motives even when they seem supportive"],
+    ORG: ["I suspect hidden agendas in people's actions", "I become defensive when I feel questioned", "I divide people into allies and potential threats"],
+    RED: ["I see enemies and conspiracies everywhere", "I attack first to prevent being attacked", "I lash out and blame others to protect my position"]
+  },
+  7: {
+    GRN: ["I find deep satisfaction in simple moments", "I stay present even when things get hard", "I commit fully to what matters most"],
+    BLU: ["I pursue joy while honoring responsibilities", "I process difficult emotions instead of avoiding them", "I follow through on commitments even when bored"],
+    YLW: ["I keep my options open to avoid missing out", "I reframe negatives into positives quickly", "I plan future experiences to stay excited"],
+    ORG: ["I escape into distractions when things get hard", "I become scattered trying to do everything", "I resent anything that limits my freedom"],
+    RED: ["I'll do anything to avoid pain or boredom", "I've burned through relationships and experiences", "I become harsh and critical when I can't escape my pain"]
+  },
+  8: {
+    GRN: ["I use my power to lift others up, not control them", "I openly share what I'm struggling with", "I champion causes bigger than myself"],
+    BLU: ["I speak directly but make sure people feel respected", "I take responsibility when things go wrong", "I set firm boundaries without intimidating"],
+    YLW: ["I take charge of situations automatically", "I decide quickly and expect others to keep up", "I test people before I fully trust them"],
+    ORG: ["I raise my intensity until people back down", "I refuse to show weakness even when I'm hurting", "I write people off when they disappoint me"],
+    RED: ["Once someone crosses me, I cut them out permanently", "I'd rather blow things up than let someone control me", "I strike first before threats can materialize"]
+  },
+  9: {
+    GRN: ["I'm fully present and engaged with life", "I take action on what matters to me", "I stay connected to myself even in conflict"],
+    BLU: ["I express my preferences without causing drama", "I create genuine harmony, not just surface peace", "I balance others' needs with my own"],
+    YLW: ["I go along with others to keep the peace", "I avoid topics that might cause conflict", "I tune out when things get too intense"],
+    ORG: ["I honestly don't know what I want most of the time", "I become stubborn when pushed too hard", "I disappear emotionally from difficult situations"],
+    RED: ["I've checked out completely from my life", "When pushed too far, I snap and blame everyone around me", "I neglect everything, including myself"]
+  }
 };
 
-const STATE_COLORS = ['#22c55e', '#3b82f6', '#eab308', '#f97316', '#ef4444'];
-const STATE_CODES = ['GRN', 'BLU', 'YLW', 'ORG', 'RED'];
+// 10 TRIAD COMBINATIONS
+const TRIAD_COMBOS: [string, string, string][] = [
+  ['GRN', 'BLU', 'YLW'], ['GRN', 'BLU', 'ORG'], ['GRN', 'BLU', 'RED'],
+  ['GRN', 'YLW', 'ORG'], ['GRN', 'YLW', 'RED'], ['GRN', 'ORG', 'RED'],
+  ['BLU', 'YLW', 'ORG'], ['BLU', 'YLW', 'RED'], ['BLU', 'ORG', 'RED'],
+  ['YLW', 'ORG', 'RED']
+];
 
-// Floating DNA particles background
-const FloatingDnaParticles: React.FC = () => {
-  const particles = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    initialX: Math.random() * 100,
-    initialY: Math.random() * 100,
-    size: Math.random() * 6 + 3,
-    duration: Math.random() * 15 + 20,
-    delay: Math.random() * 5,
-    color: ['#06b6d4', '#3b82f6', '#22c55e', '#8b5cf6'][Math.floor(Math.random() * 4)]
-  }));
+// State info with CORRECT names
+const STATE_INFO: Record<string, { name: string; color: string }> = {
+  GRN: { name: 'Very Good', color: '#22c55e' },
+  BLU: { name: 'Good', color: '#3b82f6' },
+  YLW: { name: 'Average', color: '#eab308' },
+  ORG: { name: 'Below Average', color: '#f97316' },
+  RED: { name: 'Destructive', color: '#ef4444' }
+};
 
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((particle) => (
+// Generate DNA code
+const generateDnaCode = (primary: string, secondary: string, pct1: number, pct2: number) => {
+  return `${primary}-${secondary}-${pct1.toString().padStart(2, '0')}${pct2.toString().padStart(2, '0')}`;
+};
+
+// Floating particles component (matching BuildingBlocks)
+const FloatingParticles = () => (
+  <div className="fixed inset-0 pointer-events-none overflow-hidden">
+    {[...Array(15)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="absolute w-1 h-1 rounded-full"
+        style={{
+          background: `rgba(${93 + Math.random() * 50}, ${173 + Math.random() * 50}, 226, ${0.3 + Math.random() * 0.4})`,
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+        }}
+        animate={{
+          y: [0, -100 - Math.random() * 200],
+          x: [0, (Math.random() - 0.5) * 100],
+          opacity: [0, 1, 0],
+          scale: [0, 1 + Math.random(), 0],
+        }}
+        transition={{
+          duration: 4 + Math.random() * 4,
+          repeat: Infinity,
+          delay: Math.random() * 4,
+          ease: 'easeOut',
+        }}
+      />
+    ))}
+  </div>
+);
+
+// DNA Strand visualization (matching BuildingBlocks)
+const DnaStrand = ({ segments, activeSegment }: { segments: number; activeSegment: number }) => (
+  <div className="flex justify-center gap-1 mb-4">
+    {[...Array(segments)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="relative"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ 
+          opacity: i < activeSegment ? 1 : 0.3,
+          scale: 1,
+        }}
+        transition={{ delay: i * 0.1, type: 'spring' }}
+      >
         <motion.div
-          key={particle.id}
-          className="absolute rounded-full"
-          style={{
-            width: particle.size,
-            height: particle.size,
-            left: `${particle.initialX}%`,
-            top: `${particle.initialY}%`,
-            background: `radial-gradient(circle, ${particle.color}99 0%, ${particle.color}00 70%)`,
-            boxShadow: `0 0 ${particle.size * 2}px ${particle.color}66`
-          }}
-          animate={{
-            y: [0, -40, 0],
-            x: [0, Math.random() * 30 - 15, 0],
-            opacity: [0.2, 0.8, 0.2],
-            scale: [1, 1.3, 1]
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            delay: particle.delay,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
-// DNA strand progress indicator
-const DnaStrand: React.FC<{ completedStrands: number }> = ({ completedStrands }) => {
-  const strands = [
-    { id: 1, label: 'RHETI' },
-    { id: 2, label: 'Hero' },
-    { id: 3, label: 'Blocks' },
-    { id: 4, label: 'States' },
-    { id: 5, label: 'Tokens' },
-  ];
-
-  return (
-    <div className="flex items-center justify-center gap-2 mb-6">
-      {strands.map((strand, index) => (
-        <React.Fragment key={strand.id}>
-          <motion.div
-            className={`relative w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${
-              index < completedStrands
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
-                : index === completedStrands
-                ? 'bg-cyan-500/30 text-cyan-400 border border-cyan-500'
-                : 'bg-slate-700/50 text-slate-500'
-            }`}
-            animate={index === completedStrands ? { 
-              scale: [1, 1.1, 1],
-              boxShadow: ['0 0 0px #06b6d4', '0 0 20px #06b6d4', '0 0 0px #06b6d4']
-            } : {}}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            {index < completedStrands ? '✓' : strand.id}
-          </motion.div>
-          {index < strands.length - 1 && (
-            <div className={`w-8 h-1 rounded-full ${index < completedStrands ? 'bg-gradient-to-r from-cyan-500 to-blue-500' : 'bg-slate-700'}`} />
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
-};
-
-// DNA Helix animation
-const DnaHelix: React.FC = () => {
-  const nucleotides = Array.from({ length: 8 }, (_, i) => i);
-  
-  return (
-    <div className="relative w-24 h-36 mx-auto">
-      {nucleotides.map((i) => (
-        <React.Fragment key={i}>
-          <motion.div
-            className="absolute rounded-full"
-            style={{
-              width: 10,
-              height: 10,
-              background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
-              boxShadow: '0 0 10px #06b6d4',
-              left: '50%',
-              top: i * 16
-            }}
-            animate={{
-              x: [Math.sin(i * 0.7) * 30, Math.sin(i * 0.7 + Math.PI) * 30],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div
-            className="absolute rounded-full"
-            style={{
-              width: 10,
-              height: 10,
-              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-              boxShadow: '0 0 10px #8b5cf6',
-              left: '50%',
-              top: i * 16
-            }}
-            animate={{
-              x: [Math.sin(i * 0.7 + Math.PI) * 30, Math.sin(i * 0.7) * 30],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-        </React.Fragment>
-      ))}
-    </div>
-  );
-};
-
-// Selection card component
-const SelectionCard: React.FC<{
-  phrase: string;
-  index: number;
-  selected: boolean;
-  onSelect: () => void;
-}> = ({ phrase, index, selected, onSelect }) => {
-  const color = STATE_COLORS[index];
-  
-  return (
-    <motion.button
-      onClick={onSelect}
-      className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-        selected 
-          ? 'border-cyan-500 bg-cyan-500/20' 
-          : 'border-slate-700/50 bg-slate-800/50 hover:border-slate-600'
-      }`}
-      whileHover={{ scale: 1.02, x: 5 }}
-      whileTap={{ scale: 0.98 }}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.08 }}
-    >
-      <div className="flex items-center gap-3">
-        <div 
-          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-            selected ? 'border-cyan-500 bg-cyan-500' : 'border-slate-600'
+          className={`w-8 h-8 rounded-lg ${i < activeSegment 
+            ? 'bg-gradient-to-br from-cyan-400 to-blue-500' 
+            : 'bg-[#2a3b52]'
           }`}
-          style={{ borderColor: selected ? color : undefined, backgroundColor: selected ? color : undefined }}
-        >
-          {selected && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="text-white text-xs"
-            >
-              ✓
-            </motion.div>
-          )}
-        </div>
-        <span className="text-white font-medium">{phrase}</span>
-      </div>
-    </motion.button>
-  );
-};
-
-// Tug of war slider component
-const TugOfWarSlider: React.FC<{
-  leftLabel: string;
-  rightLabel: string;
-  leftColor: string;
-  rightColor: string;
-  value: number;
-  onChange: (value: number) => void;
-}> = ({ leftLabel, rightLabel, leftColor, rightColor, value, onChange }) => {
-  const leftPercent = 100 - value;
-  const rightPercent = value;
-
-  return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="flex justify-between items-start mb-6">
-        {/* Left card */}
-        <motion.div 
-          className="w-32 p-4 rounded-xl text-center"
-          style={{ 
-            backgroundColor: `${leftColor}20`,
-            border: `2px solid ${leftColor}50`
-          }}
-          animate={{ scale: leftPercent > 50 ? [1, 1.02, 1] : 1 }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          <div className="text-xs text-slate-400 mb-1 uppercase">Best Days</div>
-          <div className="text-white font-medium text-sm leading-tight">{leftLabel}</div>
-          <div className="text-2xl font-bold mt-2" style={{ color: leftColor }}>{leftPercent}%</div>
-        </motion.div>
-
-        {/* Right card */}
-        <motion.div 
-          className="w-32 p-4 rounded-xl text-center"
-          style={{ 
-            backgroundColor: `${rightColor}20`,
-            border: `2px solid ${rightColor}50`
-          }}
-          animate={{ scale: rightPercent > 50 ? [1, 1.02, 1] : 1 }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          <div className="text-xs text-slate-400 mb-1 uppercase">Toughest Days</div>
-          <div className="text-white font-medium text-sm leading-tight">{rightLabel}</div>
-          <div className="text-2xl font-bold mt-2" style={{ color: rightColor }}>{rightPercent}%</div>
-        </motion.div>
-      </div>
-
-      {/* Slider track */}
-      <div className="relative h-12 mb-4">
-        {/* Background track */}
-        <div className="absolute inset-y-4 inset-x-0 h-4 rounded-full bg-slate-700/50 overflow-hidden">
-          {/* Left fill */}
-          <motion.div 
-            className="absolute left-0 top-0 h-full rounded-l-full"
-            style={{ 
-              width: `${leftPercent}%`,
-              background: `linear-gradient(to right, ${leftColor}, ${leftColor}80)`
-            }}
-            animate={{ width: `${leftPercent}%` }}
-          />
-          {/* Right fill */}
-          <motion.div 
-            className="absolute right-0 top-0 h-full rounded-r-full"
-            style={{ 
-              width: `${rightPercent}%`,
-              background: `linear-gradient(to left, ${rightColor}, ${rightColor}80)`
-            }}
-            animate={{ width: `${rightPercent}%` }}
-          />
-        </div>
-
-        {/* Slider input */}
-        <input
-          type="range"
-          min="15"
-          max="85"
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          animate={i === activeSegment - 1 ? {
+            boxShadow: ['0 0 0px rgba(93,173,226,0)', '0 0 20px rgba(93,173,226,0.8)', '0 0 0px rgba(93,173,226,0)'],
+          } : {}}
+          transition={{ duration: 1, repeat: i === activeSegment - 1 ? Infinity : 0 }}
         />
+        {i < activeSegment && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold"
+          >
+            ✓
+          </motion.div>
+        )}
+      </motion.div>
+    ))}
+  </div>
+);
 
-        {/* Thumb */}
-        <motion.div
-          className="absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-lg border-4 border-cyan-500 pointer-events-none"
-          style={{ left: `calc(${value}% - 16px)` }}
-          animate={{ 
-            boxShadow: ['0 0 10px #06b6d4', '0 0 20px #06b6d4', '0 0 10px #06b6d4']
-          }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        />
-      </div>
-
-      <p className="text-center text-slate-400 text-sm">
-        ◀ Drag to adjust your split ▶
-      </p>
-    </div>
-  );
-};
-
-// Main component
-const ColorStates: React.FC = () => {
+// ============================================
+// MAIN COMPONENT
+// ============================================
+export default function ColorStates() {
   const navigate = useNavigate();
   
-  // Hardcoded to Type 8 for now - will come from previous stages
-  const userType = 8;
-  const phrases = STATE_PHRASES[userType];
-  
-  const [stage, setStage] = useState<'intro' | 'best' | 'toughest' | 'same-toughest' | 'slider' | 'complete'>('intro');
-  const [bestDaySelection, setBestDaySelection] = useState<number | null>(null);
-  const [toughestDaySelection, setToughestDaySelection] = useState<number | null>(null);
-  const [sliderValue, setSliderValue] = useState(50);
-  const [dnaCode, setDnaCode] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const [phase, setPhase] = useState<'loading' | 'intro' | 'triads' | 'complete'>('loading');
+  const [userType, setUserType] = useState<number | null>(null);
+  const [currentTriad, setCurrentTriad] = useState(0);
+  const [scores, setScores] = useState<Record<string, number>>({ GRN: 0, BLU: 0, YLW: 0, ORG: 0, RED: 0 });
+  const [mostPick, setMostPick] = useState<string | null>(null);
+  const [leastPick, setLeastPick] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [history, setHistory] = useState<Array<{ triad: number; most: string; least: string; scores: Record<string, number> }>>([]);
+  const [results, setResults] = useState<{ primaryState: string; primaryStatePct: number; secondaryState: string; secondaryStatePct: number } | null>(null);
+  const [behaviorIndices] = useState<Record<string, number>>(() => {
+    const indices: Record<string, number> = {};
+    ['GRN', 'BLU', 'YLW', 'ORG', 'RED'].forEach(state => {
+      indices[state] = Math.floor(Math.random() * 3);
+    });
+    return indices;
+  });
 
-  // Generate DNA code when complete
+  // Shuffle cards for each triad
+  const shuffledTriad = useMemo(() => {
+    const triad = [...TRIAD_COMBOS[currentTriad]];
+    for (let i = triad.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [triad[i], triad[j]] = [triad[j], triad[i]];
+    }
+    return triad;
+  }, [currentTriad]);
+
   useEffect(() => {
-    if (stage === 'complete' && bestDaySelection !== null && toughestDaySelection !== null) {
-      const bestCode = STATE_CODES[bestDaySelection];
-      const toughestCode = STATE_CODES[toughestDaySelection];
-      const bestPercent = 100 - sliderValue;
-      const code = `${bestCode}-${toughestCode}-${bestPercent.toString().padStart(2, '0')}${sliderValue.toString().padStart(2, '0')}`;
-      setDnaCode(code);
-    }
-  }, [stage, bestDaySelection, toughestDaySelection, sliderValue]);
+    const fetchAssessment = async () => {
+      try {
+        const response = await apiClient.get('/inner-dna/assessment');
+        if (response.data.data?.finalType) {
+          setUserType(response.data.data.finalType);
+          setPhase('intro');
+        } else {
+          navigate('/inner-dna');
+        }
+      } catch (error) {
+        navigate('/inner-dna');
+      }
+    };
+    fetchAssessment();
+  }, [navigate]);
 
-  const handleBestDaySelect = (index: number) => {
-    setBestDaySelection(index);
-    setTimeout(() => setStage('toughest'), 300);
+  const getBehavior = (state: string): string => {
+    if (!userType) return '';
+    const behaviors = STATE_BEHAVIORS[userType]?.[state];
+    if (!behaviors) return '';
+    const index = (behaviorIndices[state] + currentTriad) % 3;
+    return behaviors[index];
   };
 
-  const handleToughestDaySelect = (index: number) => {
-    setToughestDaySelection(index);
+  const handleCardTap = (state: string) => {
+    if (isTransitioning) return;
     
-    if (index === bestDaySelection) {
-      // Same selection - need to ask for second option
-      setTimeout(() => setStage('same-toughest'), 300);
-    } else {
-      setTimeout(() => setStage('slider'), 300);
+    if (!mostPick) {
+      setMostPick(state);
+    } else if (state !== mostPick) {
+      setLeastPick(state);
+      
+      // Save to history for undo
+      setHistory(prev => [...prev, { triad: currentTriad, most: mostPick, least: state, scores: { ...scores } }]);
+      
+      // Calculate scores
+      const triadStates = TRIAD_COMBOS[currentTriad];
+      const middleState = triadStates.find(s => s !== state && s !== mostPick);
+      const newScores = { ...scores };
+      newScores[mostPick] += 2;
+      if (middleState) newScores[middleState] += 1;
+      setScores(newScores);
+      
+      setIsTransitioning(true);
+      setTimeout(() => {
+        if (currentTriad < 9) {
+          setCurrentTriad(prev => prev + 1);
+          setMostPick(null);
+          setLeastPick(null);
+          setIsTransitioning(false);
+        } else {
+          calculateResults(newScores);
+        }
+      }, 600);
     }
   };
 
-  const handleSameToughestSelect = (index: number) => {
-    setToughestDaySelection(index);
-    setTimeout(() => setStage('slider'), 300);
+  const handleUndo = () => {
+    if (mostPick && !leastPick) {
+      setMostPick(null);
+    } else if (history.length > 0 && currentTriad > 0) {
+      const lastEntry = history[history.length - 1];
+      setHistory(prev => prev.slice(0, -1));
+      setScores(lastEntry.scores);
+      setCurrentTriad(lastEntry.triad);
+      setMostPick(null);
+      setLeastPick(null);
+    }
   };
 
-  const handleConfirm = () => {
-    setStage('complete');
+  const calculateResults = (finalScores: Record<string, number>) => {
+    const sorted = Object.entries(finalScores).sort((a, b) => b[1] - a[1]);
+    const primary = sorted[0];
+    const secondary = sorted[1];
+    const total = primary[1] + secondary[1];
+    
+    const calculatedResults = {
+      primaryState: primary[0],
+      primaryStatePct: Math.round((primary[1] / total) * 100),
+      secondaryState: secondary[0],
+      secondaryStatePct: Math.round((secondary[1] / total) * 100)
+    };
+    
+    setResults(calculatedResults);
+    setPhase('complete');
+    saveResults(calculatedResults);
+    
+    // Trigger confetti
+    const colors = ['#5dade2', '#3498db', '#1abc9c', '#2ecc71', '#9b59b6', '#00ffff'];
+    setTimeout(() => confetti({ particleCount: 40, spread: 100, origin: { y: 0.5, x: 0.5 }, colors, scalar: 1.5 }), 0);
+    setTimeout(() => confetti({ particleCount: 25, spread: 70, origin: { y: 0.3, x: 0.3 }, colors }), 200);
+    setTimeout(() => confetti({ particleCount: 25, spread: 70, origin: { y: 0.3, x: 0.7 }, colors }), 400);
   };
 
-  const handleContinue = async () => {
-    if (bestDaySelection === null || toughestDaySelection === null) return;
-    setIsSaving(true);
+  const saveResults = async (data: typeof results) => {
     try {
-      const STATE_CODES_MAP = ["GRN", "BLU", "YLW", "ORG", "RED"];
-      const primaryState = STATE_CODES_MAP[bestDaySelection];
-      const secondaryState = STATE_CODES_MAP[toughestDaySelection];
-      const primaryStatePct = 100 - sliderValue;
-      const secondaryStatePct = sliderValue;
-      await apiClient.post("/inner-dna/color-states/save", {
-        primaryState,
-        primaryStatePct,
-        secondaryState,
-        secondaryStatePct
-      });
-      navigate("/inner-dna/subtype-tokens");
+      await apiClient.post('/inner-dna/color-states/save', data);
     } catch (error) {
-      console.error("Save error:", error);
-      navigate("/inner-dna/subtype-tokens");
-    } finally {
-      setIsSaving(false);
+      console.error('Failed to save:', error);
     }
   };
+
+  // ============================================
+  // RENDER
+  // ============================================
+  
+  // Loading state
+  if (phase === 'loading') {
+    return (
+      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center relative overflow-hidden">
+        <FloatingParticles />
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(93,173,226,0.03) 2px, rgba(93,173,226,0.03) 4px)',
+          }}
+          animate={{ y: [0, 10] }}
+          transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
+        />
+        <motion.div className="flex flex-col items-center gap-6 z-10">
+          <motion.div
+            className="relative"
+            animate={{ rotateY: [0, 360] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          >
+            <span className="text-8xl filter drop-shadow-2xl" style={{ filter: 'drop-shadow(0 0 30px rgba(93,173,226,0.8))' }}>🧬</span>
+          </motion.div>
+          <motion.div
+            className="text-cyan-400 text-lg font-mono"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            Calibrating State Analysis...
+          </motion.div>
+          <div className="flex gap-1">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2 h-8 bg-cyan-500/30 rounded-full"
+                animate={{ 
+                  scaleY: [1, 1.5, 1],
+                  backgroundColor: ['rgba(93,173,226,0.3)', 'rgba(93,173,226,0.8)', 'rgba(93,173,226,0.3)']
+                }}
+                transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+              />
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   // Intro screen
-  if (stage === 'intro') {
+  if (phase === 'intro') {
     return (
-      <div className="min-h-screen bg-[#0a1628] text-white flex flex-col overflow-hidden">
-        <FloatingDnaParticles />
+      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-4 relative overflow-hidden">
+        <FloatingParticles />
+        <motion.div
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(circle at center, rgba(93,173,226,0.1) 0%, transparent 70%)' }}
+        />
         
-        <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
-          <DnaStrand completedStrands={3} />
-          
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-lg w-full text-center relative z-10"
+        >
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-md"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", duration: 1 }}
+            className="text-8xl mb-6"
+            style={{ filter: 'drop-shadow(0 0 30px rgba(93,173,226,0.6))' }}
           >
-            <DnaHelix />
-            
-            <motion.h1 
-              className="text-3xl font-bold mb-2 mt-6 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent"
-            >
-              Operating Modes
-            </motion.h1>
-            
-            <p className="text-slate-400 mb-6">Stage 4 of 5</p>
-
-            <motion.div 
-              className="bg-slate-800/50 rounded-2xl p-6 mb-8 border border-cyan-500/20 backdrop-blur-sm"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <p className="text-slate-300">
-                We all operate differently on our best days vs our toughest days.
-              </p>
-              <p className="text-slate-300 mt-3">
-                Two quick questions to map your patterns.
-              </p>
-            </motion.div>
-
-            <motion.button
-              onClick={() => setStage('best')}
-              className="relative px-10 py-4 rounded-xl font-semibold text-lg overflow-hidden group"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600" />
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                animate={{ x: ['-100%', '100%'] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-              />
-              <span className="relative">Let's Go</span>
-            </motion.button>
+            🧬
           </motion.div>
-        </div>
-      </div>
-    );
-  }
-
-  // Best days selection
-  if (stage === 'best') {
-    return (
-      <div className="min-h-screen bg-[#0a1628] text-white flex flex-col overflow-hidden">
-        <FloatingDnaParticles />
-        
-        <div className="flex-1 flex flex-col p-6 relative z-10">
-          <DnaStrand completedStrands={3} />
+          
+          <motion.h1
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-3xl font-bold text-white mb-4"
+          >
+            Operating States
+          </motion.h1>
           
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-md mx-auto w-full"
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="bg-[#1a2332] rounded-xl p-6 border border-cyan-500/20 mb-8"
           >
-            <div className="text-center mb-8">
-              <motion.h2 
-                className="text-2xl font-bold text-white mb-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                On your <span className="text-green-400">BEST</span> days...
-              </motion.h2>
-              <p className="text-slate-400">How do you typically operate?</p>
-            </div>
-
-            <div className="space-y-3">
-              {phrases.map((phrase, index) => (
-                <SelectionCard
-                  key={index}
-                  phrase={phrase}
-                  index={index}
-                  selected={bestDaySelection === index}
-                  onSelect={() => handleBestDaySelect(index)}
-                />
-              ))}
+            <p className="text-gray-300 text-lg mb-4">10 quick rounds to map your behavioral patterns</p>
+            <div className="text-left space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 font-bold">1</div>
+                <p className="text-gray-400">Tap the behavior <span className="text-green-400 font-semibold">MOST</span> like you</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 font-bold">2</div>
+                <p className="text-gray-400">Then tap the one <span className="text-red-400 font-semibold">LEAST</span> like you</p>
+              </div>
             </div>
           </motion.div>
-        </div>
-      </div>
-    );
-  }
-
-  // Toughest days selection
-  if (stage === 'toughest') {
-    return (
-      <div className="min-h-screen bg-[#0a1628] text-white flex flex-col overflow-hidden">
-        <FloatingDnaParticles />
-        
-        <div className="flex-1 flex flex-col p-6 relative z-10">
-          <DnaStrand completedStrands={3} />
           
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-md mx-auto w-full"
+          <motion.button
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(93,173,226,0.5)' }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setPhase('triads')}
+            className="w-full py-4 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white rounded-xl font-semibold text-lg relative overflow-hidden"
           >
-            <div className="text-center mb-8">
-              <motion.h2 
-                className="text-2xl font-bold text-white mb-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                On your <span className="text-orange-400">TOUGHEST</span> days...
-              </motion.h2>
-              <p className="text-slate-400">How do you typically operate?</p>
-            </div>
-
-            <div className="space-y-3">
-              {phrases.map((phrase, index) => (
-                <SelectionCard
-                  key={index}
-                  phrase={phrase}
-                  index={index}
-                  selected={toughestDaySelection === index}
-                  onSelect={() => handleToughestDaySelect(index)}
-                />
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
-  // Same selection - ask for second option
-  if (stage === 'same-toughest') {
-    const remainingPhrases = phrases.filter((_, index) => index !== bestDaySelection);
-    const remainingIndices = phrases.map((_, index) => index).filter(index => index !== bestDaySelection);
-
-    return (
-      <div className="min-h-screen bg-[#0a1628] text-white flex flex-col overflow-hidden">
-        <FloatingDnaParticles />
-        
-        <div className="flex-1 flex flex-col p-6 relative z-10">
-          <DnaStrand completedStrands={3} />
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-md mx-auto w-full"
-          >
-            <div className="text-center mb-8">
-              <motion.div
-                className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-slate-700/50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <p className="text-slate-400 text-sm">You selected the same for both</p>
-              </motion.div>
-              <motion.h2 
-                className="text-2xl font-bold text-white mb-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                What's your <span className="text-orange-400">second</span> most common mode?
-              </motion.h2>
-            </div>
-
-            <div className="space-y-3">
-              {remainingIndices.map((originalIndex, i) => (
-                <SelectionCard
-                  key={originalIndex}
-                  phrase={phrases[originalIndex]}
-                  index={originalIndex}
-                  selected={toughestDaySelection === originalIndex}
-                  onSelect={() => handleSameToughestSelect(originalIndex)}
-                />
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
-  // Slider screen
-  if (stage === 'slider') {
-    return (
-      <div className="min-h-screen bg-[#0a1628] text-white flex flex-col overflow-hidden">
-        <FloatingDnaParticles />
-        
-        <div className="flex-1 flex flex-col p-6 relative z-10">
-          <DnaStrand completedStrands={3} />
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex-1 flex flex-col justify-center"
-          >
-            <div className="text-center mb-8">
-              <motion.h2 
-                className="text-2xl font-bold text-white mb-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                How do you split your time?
-              </motion.h2>
-            </div>
-
-            <TugOfWarSlider
-              leftLabel={phrases[bestDaySelection!]}
-              rightLabel={phrases[toughestDaySelection!]}
-              leftColor={STATE_COLORS[bestDaySelection!]}
-              rightColor={STATE_COLORS[toughestDaySelection!]}
-              value={sliderValue}
-              onChange={setSliderValue}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
+              animate={{ x: [-300, 300] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
             />
-
-            <motion.button
-              onClick={handleConfirm}
-              className="mt-12 mx-auto relative px-10 py-4 rounded-xl font-semibold text-lg overflow-hidden"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600" />
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                animate={{ x: ['-100%', '100%'] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-              />
-              <span className="relative">Confirm</span>
-            </motion.button>
-          </motion.div>
-        </div>
+            <span className="relative z-10">Begin State Analysis →</span>
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
 
-  // Completion screen
-  if (stage === 'complete') {
+  // Triads screen
+  if (phase === 'triads') {
     return (
-      <div className="min-h-screen bg-[#0a1628] text-white flex flex-col overflow-hidden">
-        <FloatingDnaParticles />
+      <div className="min-h-screen bg-[#0a1628] py-6 px-4 relative overflow-hidden">
+        <FloatingParticles />
         
-        <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
-          <DnaStrand completedStrands={4} />
-          
+        <div className="max-w-2xl mx-auto relative z-10">
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-4"
+          >
+            <motion.div 
+              className="flex items-center justify-center gap-3 mb-2"
+              animate={{ scale: [1, 1.02, 1] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <motion.span 
+                className="text-4xl"
+                animate={{ rotateY: [0, 360] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                style={{ filter: 'drop-shadow(0 0 15px rgba(93,173,226,0.6))' }}
+              >
+                🧬
+              </motion.span>
+              <h1 className="text-2xl font-bold text-white">State Mapping</h1>
+            </motion.div>
+          </motion.div>
+
+          {/* Progress */}
+          <div className="flex justify-center gap-2 mb-4">
+            {[...Array(10)].map((_, i) => (
+              <motion.div
+                key={i}
+                className={`w-3 h-3 rounded-full ${
+                  i < currentTriad ? 'bg-cyan-400' : 
+                  i === currentTriad ? 'bg-cyan-400' : 'bg-gray-700'
+                }`}
+                animate={i === currentTriad ? { 
+                  scale: [1, 1.4, 1],
+                  boxShadow: ['0 0 0 0 rgba(6,182,212,0)', '0 0 0 8px rgba(6,182,212,0.3)', '0 0 0 0 rgba(6,182,212,0)']
+                } : {}}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+            ))}
+            <span className="text-cyan-400 font-mono font-bold ml-2">{currentTriad + 1}/10</span>
+          </div>
+
+          {/* Undo Button */}
+          {(mostPick || currentTriad > 0) && (
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={handleUndo}
+              className="absolute top-6 left-4 flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors z-20"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>Undo</span>
+            </motion.button>
+          )}
+
+          {/* Instruction - BIG and CLEAR */}
           <motion.div
+            key={mostPick ? 'least' : 'most'}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center max-w-md"
+            className="text-center mb-6"
           >
-            {/* DNA helix with glow */}
-            <div className="relative mb-8">
-              <motion.div
-                className="absolute inset-0 blur-3xl"
-                style={{
-                  background: 'radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, rgba(139, 92, 246, 0.2) 50%, transparent 70%)',
-                }}
-                animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.7, 0.4] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
-              <DnaHelix />
-              
-              {/* Orbiting particles */}
-              {[0, 72, 144, 216, 288].map((degree, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-3 h-3 rounded-full"
-                  style={{ 
-                    top: '50%', 
-                    left: '50%',
-                    background: STATE_COLORS[i],
-                    boxShadow: `0 0 10px ${STATE_COLORS[i]}`
-                  }}
-                  animate={{
-                    x: Math.cos((degree * Math.PI) / 180) * 60,
-                    y: Math.sin((degree * Math.PI) / 180) * 60,
-                    scale: [1, 1.3, 1]
-                  }}
-                  transition={{ 
-                    scale: { duration: 1.5, repeat: Infinity, delay: i * 0.2 }
-                  }}
-                />
-              ))}
-            </div>
+            {!mostPick ? (
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl py-4 px-6 inline-block">
+                <p className="text-2xl text-green-400 font-bold">
+                  👆 Tap MOST like you
+                </p>
+              </div>
+            ) : (
+              <motion.div 
+                className="bg-red-500/10 border border-red-500/30 rounded-xl py-4 px-6 inline-block"
+                animate={{ scale: [1, 1.02, 1], borderColor: ['rgba(239,68,68,0.3)', 'rgba(239,68,68,0.6)', 'rgba(239,68,68,0.3)'] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <p className="text-2xl text-red-400 font-bold">
+                  👇 Now tap LEAST like you
+                </p>
+              </motion.div>
+            )}
+          </motion.div>
 
-            <motion.p
-              className="text-cyan-400 text-sm mb-2 font-mono"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              STRAND #4 OF 5 • OPERATING MODES MAPPED
-            </motion.p>
+          {/* Cards */}
+          <div className="space-y-4">
+            <AnimatePresence mode="popLayout">
+              {shuffledTriad.map((state, index) => {
+                const isSelected = state === mostPick;
+                const isLeast = state === leastPick;
+                const shouldPulse = mostPick && !leastPick && !isSelected;
+                
+                return (
+                  <motion.div
+                    key={`${currentTriad}-${state}`}
+                    initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
+                    animate={{ 
+                      opacity: 1, 
+                      x: 0,
+                      scale: shouldPulse ? [1, 1.01, 1] : 1,
+                      borderColor: shouldPulse ? ['rgba(239,68,68,0.2)', 'rgba(239,68,68,0.5)', 'rgba(239,68,68,0.2)'] : undefined
+                    }}
+                    exit={{ opacity: 0, scale: 0.9, x: isSelected ? 0 : 50 }}
+                    transition={{ 
+                      duration: 0.4,
+                      delay: index * 0.1,
+                      scale: { duration: 1.2, repeat: shouldPulse ? Infinity : 0 }
+                    }}
+                    onClick={() => !(isSelected && mostPick) && handleCardTap(state)}
+                    className={`relative p-5 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${
+                      isSelected 
+                        ? 'bg-green-500/10 border-green-500 shadow-lg shadow-green-500/20' 
+                        : isLeast
+                          ? 'bg-red-500/10 border-red-500 shadow-lg shadow-red-500/20'
+                          : 'bg-[#1a2332] border-[#2a3b52] hover:border-cyan-500/50'
+                    } ${isSelected ? 'cursor-not-allowed' : ''}`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div 
+                        className="w-4 h-4 rounded-full mt-1 flex-shrink-0"
+                        style={{ backgroundColor: STATE_INFO[state].color }}
+                      />
+                      <p className="text-white text-lg leading-relaxed flex-1">
+                        {getBehavior(state)}
+                      </p>
+                      
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full"
+                        >
+                          ✓ MOST
+                        </motion.div>
+                      )}
+                      {isLeast && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full"
+                        >
+                          ✗ LEAST
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-            <motion.h2
-              className="text-3xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              Pattern Captured
-            </motion.h2>
+  // COMPLETION SCREEN - Matching BuildingBlocks style
+  if (phase === 'complete' && results) {
+    const dnaCode = generateDnaCode(results.primaryState, results.secondaryState, results.primaryStatePct, results.secondaryStatePct);
+    
+    return (
+      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-4 relative overflow-hidden">
+        <FloatingParticles />
+        
+        {/* Radial glow */}
+        <motion.div
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{
+            background: 'radial-gradient(circle at center, rgba(93,173,226,0.15) 0%, transparent 70%)',
+          }}
+        />
 
-            {/* DNA Code card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5, rotateY: -90 }}
+          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+          transition={{ type: 'spring', damping: 12, duration: 1 }}
+          className="bg-gradient-to-br from-[#1a2332] to-[#0d1829] border border-cyan-500/30 rounded-3xl p-8 max-w-lg w-full text-center relative overflow-hidden z-10"
+        >
+          {/* Scanning effect */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-b from-cyan-500/10 via-transparent to-transparent"
+            animate={{ y: [-200, 400] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+            style={{ height: '100px' }}
+          />
+
+          {/* DNA Animation */}
+          <motion.div 
+            className="relative h-36 mb-6 flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, type: 'spring' }}
+          >
             <motion.div
-              className="relative bg-slate-800/80 rounded-2xl p-6 mb-8 border border-cyan-500/30 backdrop-blur-sm overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              animate={{ 
+                rotate: 360,
+                scale: [1, 1.1, 1],
+              }}
+              transition={{ 
+                rotate: { duration: 6, repeat: Infinity, ease: 'linear' },
+                scale: { duration: 2, repeat: Infinity }
+              }}
+              className="text-9xl"
+              style={{ filter: 'drop-shadow(0 0 40px rgba(93,173,226,0.8))' }}
             >
-              {/* Corner decorations */}
-              <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-cyan-500 rounded-tl-lg" />
-              <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-cyan-500 rounded-tr-lg" />
-              <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-cyan-500 rounded-bl-lg" />
-              <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-cyan-500 rounded-br-lg" />
-
-              {/* Scanning effect */}
+              🧬
+            </motion.div>
+            
+            {/* Orbiting particles */}
+            {[0, 1, 2].map((i) => (
               <motion.div
-                className="absolute inset-0"
+                key={i}
+                className="absolute w-3 h-3 rounded-full bg-cyan-400"
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: 'linear',
+                  delay: i * 1,
+                }}
+                style={{
+                  transformOrigin: '50px 50px',
+                  filter: 'blur(1px)',
+                }}
+              />
+            ))}
+          </motion.div>
+
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-3xl font-bold text-white mb-2"
+          >
+            States Mapped
+          </motion.h2>
+          
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-gray-400 mb-6"
+          >
+            Operating frequencies identified
+          </motion.p>
+
+          {/* DNA Code Display */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, type: 'spring' }}
+            className="relative mb-6"
+          >
+            <div className="bg-[#0a1628] rounded-xl p-6 border border-cyan-500/50 relative overflow-hidden">
+              {/* Corner decorations */}
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-500/50" />
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-500/50" />
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-500/50" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-500/50" />
+              
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="text-xs text-cyan-500/70 uppercase tracking-widest mb-2"
               >
-                <motion.div
-                  className="absolute inset-x-0 h-12 bg-gradient-to-b from-cyan-500/30 via-cyan-500/10 to-transparent"
-                  animate={{ top: ['-20%', '120%'] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                />
+                Classified Genetic Marker
               </motion.div>
-
-              <p className="text-slate-400 text-xs mb-3 uppercase tracking-widest font-mono">DNA Sequence Fragment</p>
               
-              {/* Animated DNA code */}
-              <div className="font-mono text-3xl text-cyan-400 tracking-widest flex justify-center gap-1">
+              <motion.div className="font-mono text-3xl font-bold tracking-wider">
                 {dnaCode.split('').map((char, i) => (
                   <motion.span
                     key={i}
-                    className={char === '-' ? 'text-slate-600' : ''}
-                    style={{
-                      textShadow: char !== '-' ? '0 0 20px #06b6d4' : 'none'
-                    }}
-                    initial={{ opacity: 0, y: 20, rotateX: -90 }}
-                    animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                    transition={{ delay: 0.9 + i * 0.08, type: "spring", stiffness: 200 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.2 + i * 0.05 }}
+                    className={char === '-' ? 'text-gray-500' : 'text-cyan-400'}
+                    style={{ textShadow: char !== '-' ? '0 0 10px rgba(93,173,226,0.8)' : 'none' }}
                   >
                     {char}
                   </motion.span>
                 ))}
-              </div>
-
-              {/* State indicator bar */}
+              </motion.div>
+              
               <motion.div
-                className="h-1.5 mt-5 rounded-full overflow-hidden bg-slate-700/50"
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ delay: 1.5, duration: 1 }}
+                className="h-0.5 bg-gradient-to-r from-transparent via-cyan-500 to-transparent mt-4"
+              />
+              
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 1.5 }}
+                transition={{ delay: 2 }}
+                className="text-xs text-gray-500 mt-2"
               >
-                <motion.div
-                  className="h-full rounded-full"
-                  style={{
-                    background: `linear-gradient(to right, ${STATE_COLORS[bestDaySelection!]}, ${STATE_COLORS[toughestDaySelection!]})`
-                  }}
-                  initial={{ width: 0 }}
-                  animate={{ width: '100%' }}
-                  transition={{ delay: 1.7, duration: 1.2, ease: "easeOut" }}
-                />
+                Strand #3 of 4 • Color States Complete
               </motion.div>
-            </motion.div>
-
-            <motion.button
-              onClick={handleContinue}
-              className="relative w-full py-4 rounded-xl font-semibold text-lg overflow-hidden group"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 2.2 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600" />
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
-                animate={{ x: ['-100%', '100%'] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-              />
-              <span className="relative flex items-center justify-center gap-3">
-                Continue to Final Strand
-                <motion.span
-                  animate={{ x: [0, 8, 0] }}
-                  transition={{ duration: 1.2, repeat: Infinity }}
-                >
-                  →
-                </motion.span>
-              </span>
-            </motion.button>
+            </div>
           </motion.div>
-        </div>
+
+          {/* Results breakdown */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 2.2 }}
+            className="flex justify-center gap-6 mb-6"
+          >
+            <div className="text-center">
+              <div 
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-2 mx-auto border-2"
+                style={{ 
+                  borderColor: STATE_INFO[results.primaryState].color,
+                  backgroundColor: `${STATE_INFO[results.primaryState].color}20`
+                }}
+              >
+                <span className="text-xl font-bold" style={{ color: STATE_INFO[results.primaryState].color }}>
+                  {results.primaryStatePct}%
+                </span>
+              </div>
+              <p className="text-white font-medium">{STATE_INFO[results.primaryState].name}</p>
+              <p className="text-gray-500 text-xs">Primary</p>
+            </div>
+            <div className="text-center">
+              <div 
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-2 mx-auto border-2"
+                style={{ 
+                  borderColor: STATE_INFO[results.secondaryState].color,
+                  backgroundColor: `${STATE_INFO[results.secondaryState].color}20`
+                }}
+              >
+                <span className="text-xl font-bold" style={{ color: STATE_INFO[results.secondaryState].color }}>
+                  {results.secondaryStatePct}%
+                </span>
+              </div>
+              <p className="text-white font-medium">{STATE_INFO[results.secondaryState].name}</p>
+              <p className="text-gray-500 text-xs">Secondary</p>
+            </div>
+          </motion.div>
+
+          {/* Progress visualization */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2.4 }}
+            className="mb-6"
+          >
+            <DnaStrand segments={4} activeSegment={3} />
+            <p className="text-gray-500 text-sm">1 more sequence to discover</p>
+          </motion.div>
+
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 2.6 }}
+            whileHover={{ scale: 1.03, boxShadow: '0 0 40px rgba(93,173,226,0.5)' }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate('/inner-dna/subtype-tokens')}
+            className="w-full py-4 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white rounded-xl font-semibold text-lg relative overflow-hidden group"
+          >
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
+              animate={{ x: [-300, 300] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+            />
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              Continue to Final Strand
+              <motion.span
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                →
+              </motion.span>
+            </span>
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
 
   return null;
-};
-
-export default ColorStates;
+}
