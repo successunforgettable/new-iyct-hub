@@ -323,3 +323,42 @@ export const submitBuildingBlockAnswers = async (req: Request, res: Response): P
     res.status(400).json({ success: false, error: error.message });
   }
 };
+
+
+export const saveSubtypeTokens = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+    
+    const { tokens, order, dnaCode } = req.body;
+    
+    const result = await innerDnaService.saveSubtypeTokens(userId, tokens, order);
+    
+    res.json({ success: true, data: { ...result, dnaCode } });
+  } catch (error) {
+    console.error('Save subtype tokens error:', error);
+    res.status(500).json({ success: false, error: 'Failed to save subtype tokens' });
+  }
+};
+
+export const saveColorStates = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+    
+    const { primaryState, primaryStatePct, secondaryState, secondaryStatePct } = req.body;
+    
+    const result = await innerDnaService.saveColorStates(userId, primaryState, primaryStatePct, secondaryState, secondaryStatePct);
+    
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Save color states error:', error);
+    res.status(500).json({ success: false, error: 'Failed to save color states' });
+  }
+};

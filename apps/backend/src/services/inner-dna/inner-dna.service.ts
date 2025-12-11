@@ -407,6 +407,52 @@ export class InnerDnaService {
     return { wing, wingAPicks, wingBPicks, status: "BUILDING_COMPLETE" };
   }
 
+
+  async saveSubtypeTokens(userId: string, tokens: { sp: number; sx: number; so: number }, order: string[]) {
+    const assessment = await prisma.innerDnaAssessment.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!assessment) {
+      throw new Error('Assessment not found');
+    }
+
+    await prisma.innerDnaAssessment.update({
+      where: { id: assessment.id },
+      data: {
+        subtypeTokens: tokens,
+        subtypeOrder: order,
+        status: 'SUBTYPE_COMPLETE'
+      }
+    });
+
+    return { success: true };
+  }
+
+  async saveColorStates(userId: string, primaryState: string, primaryStatePct: number, secondaryState: string, secondaryStatePct: number) {
+    const assessment = await prisma.innerDnaAssessment.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" }
+    });
+
+    if (!assessment) {
+      throw new Error("Assessment not found");
+    }
+
+    await prisma.innerDnaAssessment.update({
+      where: { id: assessment.id },
+      data: {
+        primaryState,
+        primaryStatePct,
+        secondaryState,
+        secondaryStatePct,
+        status: "STATE_COMPLETE"
+      }
+    });
+
+    return { success: true };
+  }
 }
 
 export const innerDnaService = new InnerDnaService();

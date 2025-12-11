@@ -12,6 +12,8 @@ import {
   getHeroProgress,
   getBuildingBlockQuestions,
   submitBuildingBlockAnswers,
+  saveSubtypeTokens,
+  saveColorStates,
 } from '../controllers/inner-dna.controller';
 
 const router = Router();
@@ -45,5 +47,11 @@ router.get("/hero/progress", getHeroProgress);
 // Building Blocks routes
 router.get("/building-blocks/questions", getBuildingBlockQuestions);
 router.post("/building-blocks/answer", submitBuildingBlockAnswers);
+
+// Color States routes
+router.post("/color-states/save", saveColorStates);
+
+// Subtype Tokens routes
+router.post("/subtype-tokens/save", saveSubtypeTokens);
 
 export default router;

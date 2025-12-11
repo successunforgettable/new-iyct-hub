@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../api/client';
 
 // State phrases for all 9 types - neutral, non-judgmental wording
 const STATE_PHRASES: Record<number, string[]> = {
@@ -364,6 +365,7 @@ const ColorStates: React.FC = () => {
   const [toughestDaySelection, setToughestDaySelection] = useState<number | null>(null);
   const [sliderValue, setSliderValue] = useState(50);
   const [dnaCode, setDnaCode] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Generate DNA code when complete
   useEffect(() => {
@@ -401,10 +403,29 @@ const ColorStates: React.FC = () => {
     setStage('complete');
   };
 
-  const handleContinue = () => {
-    navigate('/inner-dna/subtype-tokens');
+  const handleContinue = async () => {
+    if (bestDaySelection === null || toughestDaySelection === null) return;
+    setIsSaving(true);
+    try {
+      const STATE_CODES_MAP = ["GRN", "BLU", "YLW", "ORG", "RED"];
+      const primaryState = STATE_CODES_MAP[bestDaySelection];
+      const secondaryState = STATE_CODES_MAP[toughestDaySelection];
+      const primaryStatePct = 100 - sliderValue;
+      const secondaryStatePct = sliderValue;
+      await apiClient.post("/inner-dna/color-states/save", {
+        primaryState,
+        primaryStatePct,
+        secondaryState,
+        secondaryStatePct
+      });
+      navigate("/inner-dna/subtype-tokens");
+    } catch (error) {
+      console.error("Save error:", error);
+      navigate("/inner-dna/subtype-tokens");
+    } finally {
+      setIsSaving(false);
+    }
   };
-
   // Intro screen
   if (stage === 'intro') {
     return (
