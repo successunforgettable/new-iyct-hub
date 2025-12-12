@@ -36,6 +36,7 @@ model User {
   lastLoginIp           String?
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
+  innerDnaAssessments   InnerDnaAssessment[]
   adminRoles            AdminRole[]
   aiGeneratedContent    AiGeneratedContent[]
   auditLogs             AuditLog[]
@@ -44,7 +45,6 @@ model User {
   files                 File[]
   gdprRequests          GdprDataRequest[]
   innerDnaResult        InnerDnaResult?
-  innerDnaAssessments   InnerDnaAssessment[]
   invoices              Invoice[]
   kycDocuments          KycDocument[]
   payments              Payment[]
@@ -573,6 +573,59 @@ model File {
   @@map("files")
 }
 
+model InnerDnaAssessment {
+  id                String               @id @default(uuid())
+  userId            String
+  status            String               @default("STARTED")
+  rhetiScores       Json?
+  heroScores        Json?
+  topTypes          Int[]
+  finalType         Int?
+  buildingBlock     String?
+  primaryState      String?
+  primaryStatePct   Int?
+  secondaryState    String?
+  secondaryStatePct Int?
+  subtypeTokens     Json?
+  subtypeOrder      String[]
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  completedAt       DateTime?
+  heroResponses     HeroMomentResponse[]
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rhetiResponses    RhetiResponse[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model RhetiResponse {
+  id             String             @id @default(uuid())
+  assessmentId   String
+  questionNumber Int
+  selectedOption String
+  selectedColumn String
+  createdAt      DateTime           @default(now())
+  assessment     InnerDnaAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, questionNumber])
+  @@index([assessmentId])
+}
+
+model HeroMomentResponse {
+  id             String             @id @default(uuid())
+  assessmentId   String
+  scenarioId     String
+  selectedOption String
+  selectedType   Int
+  confidence     Float
+  createdAt      DateTime           @default(now())
+  assessment     InnerDnaAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, scenarioId])
+  @@index([assessmentId])
+}
+
 enum UserRole {
   SUPERADMIN
   ADMIN
@@ -592,6 +645,7 @@ enum ProgramType {
   FREE
   OUTSIDE
 }
+
 enum EnrollmentStatus {
   ACTIVE
   COMPLETED
@@ -637,60 +691,4 @@ enum KYCStatus {
   SUBMITTED
   VERIFIED
   REJECTED
-}
-
-// Inner DNA Assessment - Tracks progress through 5 stages
-model InnerDnaAssessment {
-  id              String           @id @default(uuid())
-  userId          String
-  status          String           @default("STARTED") // STARTED, RHETI_COMPLETE, HERO_COMPLETE, BUILDING_BLOCKS, STATES_COMPLETE, FINISHED
-  rhetiScores     Json?            // {type1: 5, type2: 3, ...type9: 2}
-  heroScores      Json?            // Bayesian confidence per type
-  topTypes        Int[]            // Top 3 types after RHETI
-  finalType       Int?             // 1-9
-  buildingBlock   String?          // e.g., "7" or "9" (adjacent type number)
-  primaryState    String?          // very_good, good, average, below_average, destructive
-  primaryStatePct Int?             // 0-100
-  secondaryState  String?
-  secondaryStatePct Int?
-  subtypeTokens   Json?            // {sp: 4, sx: 3, so: 3}
-  subtypeOrder    String[]         // ["sp", "sx", "so"] - 3rd is blind
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  completedAt     DateTime?
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rhetiResponses  RhetiResponse[]
-  heroResponses   HeroMomentResponse[]
-
-  @@index([userId])
-  @@index([status])
-}
-
-// RHETI Responses - 36 question answers
-model RhetiResponse {
-  id             String             @id @default(uuid())
-  assessmentId   String
-  questionNumber Int                // 1-36
-  selectedOption String             // 'A' or 'B'
-  selectedColumn String             // A-I (column that gets point)
-  createdAt      DateTime           @default(now())
-  assessment     InnerDnaAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-
-  @@unique([assessmentId, questionNumber])
-  @@index([assessmentId])
-}
-
-// Hero Moment Responses - Scenario answers for Bayesian typing
-model HeroMomentResponse {
-  id             String             @id @default(uuid())
-  assessmentId   String
-  scenarioId     String             // e.g., "general_001"
-  selectedOption String             // Option ID chosen
-  selectedType   Int                // Type 1-9 this maps to
-  confidence     Float              // Confidence value of this choice
-  createdAt      DateTime           @default(now())
-  assessment     InnerDnaAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-
-  @@unique([assessmentId, scenarioId])
-  @@index([assessmentId])
 }

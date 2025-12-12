@@ -313,26 +313,45 @@ export class InnerDnaService {
     const rhetiTop3Scores = topTypes.map(t => rhetiScores[`type${t}`] || 0);
     const rhetiGap = rhetiTop3Scores[0] - rhetiTop3Scores[1];
     const isRhetiClear = rhetiGap >= 3;
+    const isRhetiClose = rhetiGap < 3;
     const rhetiLeader = topTypes[0];
     const heroMatchesRheti = heroDominant === rhetiLeader;
 
-    // SMART COMPLETION - pick counting based
+    // SMART COMPLETION - with RHETI gap awareness
+    // KEY FIX: When RHETI was close, require MORE scenarios before completing
     let isComplete = false;
     let finalConfidence = 0;
 
     if (isRhetiClear && heroMatchesRheti && heroDominantCount >= 2) {
+      // BEST CASE: RHETI was clear (gap >= 3) and Hero confirms
       isComplete = true;
       finalConfidence = 0.92;
-    } else if (heroDominantCount >= 3 && heroGap >= 2) {
+    } else if (!isRhetiClose && heroDominantCount >= 3 && heroGap >= 2) {
+      // RHETI was clear, Hero has decisive winner (gap >= 2)
       isComplete = true;
       finalConfidence = 0.93;
-    } else if (heroDominantCount >= 3 && heroGap >= 1) {
+    } else if (!isRhetiClose && heroDominantCount >= 3 && heroGap >= 1) {
+      // RHETI was clear, Hero has slight winner (gap = 1)
       isComplete = true;
       finalConfidence = 0.91;
-    } else if (scenarioCount >= 5 && heroGap >= 2) {
+    } else if (isRhetiClose && scenarioCount >= 7 && heroGap >= 3) {
+      // RHETI was CLOSE - need 7+ scenarios AND gap of 3+
       isComplete = true;
       finalConfidence = 0.90;
-    } else if (scenarioCount >= 8) {
+    } else if (isRhetiClose && scenarioCount >= 8 && heroGap >= 2) {
+      // RHETI was CLOSE - need 8+ scenarios with gap of 2
+      isComplete = true;
+      finalConfidence = 0.88;
+    } else if (!isRhetiClose && scenarioCount >= 5 && heroGap >= 2) {
+      // RHETI was clear - 5 scenarios with gap=2 is enough
+      isComplete = true;
+      finalConfidence = 0.90;
+    } else if (scenarioCount >= 10) {
+      // Extended max for close races - must decide
+      isComplete = true;
+      finalConfidence = 0.85;
+    } else if (scenarioCount >= 8 && !isRhetiClose) {
+      // Standard max if RHETI was clear
       isComplete = true;
       finalConfidence = 0.85;
     }
